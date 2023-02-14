@@ -5,6 +5,8 @@ val kotlin_version: String by project
 val logback_version: String by project
 val postgres_version : String by project
 val h2_version : String by project
+val flyway_version: String by project
+val hikaricp_version: String by project
 
 plugins {
     kotlin("jvm") version "1.8.10"
@@ -21,6 +23,8 @@ application {
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+
+
 }
 
 repositories {
@@ -31,12 +35,13 @@ dependencies {
     implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktor_version")
-    implementation("org.flywaydb:flyway-core:9.14.1")
-    jooqGenerator("org.postgresql:postgresql:$postgres_version")
-    implementation("com.h2database:h2:$h2_version")
+    implementation("org.flywaydb:flyway-core:$flyway_version")
+    implementation("org.postgresql:postgresql:$postgres_version")
     implementation("io.ktor:ktor-server-resources:$ktor_version")
     implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
+    implementation("com.zaxxer:HikariCP:$hikaricp_version")
+    jooqGenerator("org.postgresql:postgresql:$postgres_version")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }
@@ -51,7 +56,7 @@ flyway {
 
 jooq {configurations {
         create("main") {
-            generateSchemaSourceOnCompilation.set(true)
+            generateSchemaSourceOnCompilation.set(false)
 
             jooqConfiguration.apply {
                 logging = Logging.INFO
