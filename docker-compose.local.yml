@@ -1,0 +1,19 @@
+version: '3.5'
+
+services:
+  postgres:
+    container_name: redosul
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: redosul
+      PGDATA: /data/postgres
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - "65432:5432"
+    restart: unless-stopped
+volumes:
+  postgres:
