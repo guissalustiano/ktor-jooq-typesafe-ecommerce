@@ -4,6 +4,7 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import br.com.redosul.plugins.*
+import br.com.redosul.product.product
 
 fun main() {
     embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
@@ -14,4 +15,6 @@ fun Application.module() {
     configureSerialization()
     val dsl = configureDatabases()
     configureRouting()
+
+    product()
 }
