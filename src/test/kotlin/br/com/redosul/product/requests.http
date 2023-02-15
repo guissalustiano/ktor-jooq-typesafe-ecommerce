@@ -1,0 +1,36 @@
+GET http://localhost:8080/products
+Accept: application/json
+
+###
+POST http://localhost:8080/products
+Content-Type: application/json
+
+{
+  "name": "Product 1"
+}
+
+###
+GET http://localhost:8080/products/3
+Accept: application/json
+
+###
+PATCH http://localhost:8080/products/3
+Content-Type: application/json
+
+{
+  "name": "Other Product"
+}
+
+###
+PATCH http://localhost:8080/products/3
+Content-Type: application/json
+
+{
+  "id": 1
+}
+
+###
+DELETE http://localhost:8080/products/3
+Content-Type: application/json
+
+###

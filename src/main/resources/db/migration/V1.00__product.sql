@@ -1,4 +1,4 @@
 create table product(
     id bigserial,
-    name text
+    name text not null
 )

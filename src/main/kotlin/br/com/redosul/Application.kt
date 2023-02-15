@@ -16,5 +16,5 @@ fun Application.module() {
     val dsl = configureDatabases()
     configureRouting()
 
-    product()
+    product(dsl)
 }

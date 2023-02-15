@@ -80,9 +80,6 @@ jooq {configurations {
                         isImmutablePojos = true
                         isFluentSetters = true
                         isRelations = true
-                        isPojos = true
-                        isPojosEqualsAndHashCode = true
-                        isDaos = true
                     }
                     target.apply {
                         packageName = "br.com.redosul.generated"

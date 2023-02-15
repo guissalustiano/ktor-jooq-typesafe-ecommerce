@@ -5,7 +5,11 @@ import com.zaxxer.hikari.HikariDataSource
 import java.sql.*
 import io.ktor.server.application.*
 import org.jooq.DSLContext
+import org.jooq.Record
 import org.jooq.SQLDialect
+import org.jooq.TableField
+import org.jooq.UpdateSetMoreStep
+import org.jooq.UpdateSetStep
 import org.jooq.conf.MappedSchema
 import org.jooq.conf.RenderMapping
 import org.jooq.conf.Settings
@@ -31,7 +35,7 @@ private fun createDataSource(): HikariDataSource {
         username = user
         password = pass
         maximumPoolSize = 3
-        isAutoCommit = false
+        isAutoCommit = true
         transactionIsolation = "TRANSACTION_REPEATABLE_READ"
         validate()
     })
