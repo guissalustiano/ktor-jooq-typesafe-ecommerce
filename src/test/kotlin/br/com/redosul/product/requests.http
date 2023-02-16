@@ -6,31 +6,25 @@ POST http://localhost:8080/products
 Content-Type: application/json
 
 {
+  "categoryId": 1,
   "name": "Product 1"
 }
 
 ###
-GET http://localhost:8080/products/3
+GET http://localhost:8080/products/1
 Accept: application/json
 
 ###
-PATCH http://localhost:8080/products/3
+POST http://localhost:8080/products/1
 Content-Type: application/json
 
 {
+  "categoryId": 1,
   "name": "Other Product"
 }
 
 ###
-PATCH http://localhost:8080/products/3
-Content-Type: application/json
-
-{
-  "id": 1
-}
-
-###
-DELETE http://localhost:8080/products/3
+DELETE http://localhost:8080/products/1
 Content-Type: application/json
 
 ###

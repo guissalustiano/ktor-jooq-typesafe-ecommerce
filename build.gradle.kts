@@ -60,6 +60,9 @@ flyway {
     url = System.getenv("DB_URL")
     user = System.getenv("DB_USER")
     password = System.getenv("DB_PASSWORD")
+
+    cleanOnValidationError = true
+    cleanDisabled = false
 }
 
 jooq {configurations {

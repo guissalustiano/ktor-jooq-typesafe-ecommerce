@@ -1,0 +1,29 @@
+GET http://localhost:8080/categories
+Accept: application/json
+
+###
+POST http://localhost:8080/categories
+Content-Type: application/json
+
+{
+  "parentId": 1,
+  "name": "Category children"
+}
+
+###
+GET http://localhost:8080/categories/1
+Accept: application/json
+
+###
+POST http://localhost:8080/categories/1
+Content-Type: application/json
+
+{
+  "name": "New Category"
+}
+
+###
+DELETE http://localhost:8080/categories/3
+Content-Type: application/json
+
+###
