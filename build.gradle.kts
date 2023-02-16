@@ -7,6 +7,8 @@ val postgres_version : String by project
 val h2_version : String by project
 val flyway_version: String by project
 val hikaricp_version: String by project
+val arrow_version : String by project
+val kotest_version : String by project
 
 plugins {
     kotlin("jvm") version "1.8.10"
@@ -43,9 +45,15 @@ dependencies {
     implementation("com.zaxxer:HikariCP:$hikaricp_version")
     jooqGenerator("org.postgresql:postgresql:$postgres_version")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotest_version")
+    testImplementation("io.kotest:kotest-property:$kotest_version")
+    testImplementation("io.kotest:kotest-assertions-core:$kotest_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }
 
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
 
 
 flyway {

@@ -2,6 +2,8 @@ package br.com.redosul.product
 
 import br.com.redosul.generated.tables.records.ProductRecord
 import br.com.redosul.generated.tables.references.PRODUCT
+import br.com.redosul.plugins.Undefinable
+import br.com.redosul.plugins.ifPresent
 import io.ktor.http.HttpStatusCode
 import io.ktor.resources.Resource
 import io.ktor.server.application.Application
@@ -30,19 +32,18 @@ private fun ProductRecord.toResponse() = ProductResponse(
 data class ProductCreatePayload(val name: String)
 
 @Serializable
-// data class ProductUpdatePayload(val name: Undefinable<String>)
-data class ProductUpdatePayload(val name: String? = null)
+data class ProductUpdatePayload(val name: Undefinable<String>)
 
 fun Application.product(dsl: DSLContext) {
     routing {
-        get<ProductsResource> {
+        get<ProductsResource> {resource ->
             val rows = dsl.selectFrom(PRODUCT)
                 .fetchInto(PRODUCT)
 
             call.respond(listOf(rows.map { it.toResponse() }))
         }
 
-        post<ProductsResource> {
+        post<ProductsResource> {resource ->
             val payload = call.receive<ProductCreatePayload>()
 
             val row = dsl.insertInto(PRODUCT)
@@ -54,9 +55,9 @@ fun Application.product(dsl: DSLContext) {
             call.response.status(HttpStatusCode.Created)
         }
 
-        get<ProductsResource.Id> {
+        get<ProductsResource.Id> {resource ->
             val row = dsl.selectFrom(PRODUCT)
-                .where(PRODUCT.ID.eq(it.id))
+                .where(PRODUCT.ID.eq(resource.id))
                 .fetchOneInto(PRODUCT)
 
             if (row == null) {
@@ -67,18 +68,16 @@ fun Application.product(dsl: DSLContext) {
             call.respond(row.toResponse())
         }
 
-        patch<ProductsResource.Id> {
+        patch<ProductsResource.Id> {resource ->
             val payload = call.receive<ProductUpdatePayload>()
 
             val record = dsl.newRecord(PRODUCT).apply {
-                if (payload.name != null) {
-                    name = payload.name
-                }
+                payload.name.ifPresent { name = it }
             }
 
             val row = dsl.update(PRODUCT)
                 .set(record)
-                .where(PRODUCT.ID.eq(it.id))
+                .where(PRODUCT.ID.eq(resource.id))
                 .returningResult(PRODUCT.ID, PRODUCT.NAME)
                 .fetchOneInto(PRODUCT)
 
@@ -91,9 +90,9 @@ fun Application.product(dsl: DSLContext) {
             call.respond(row.toResponse())
         }
 
-        delete<ProductsResource.Id> {
+        delete<ProductsResource.Id> {resource ->
             val row = dsl.deleteFrom(PRODUCT)
-                .where(PRODUCT.ID.eq(it.id))
+                .where(PRODUCT.ID.eq(resource.id))
                 .returningResult(PRODUCT.ID, PRODUCT.NAME)
                 .fetchOneInto(PRODUCT)
 
