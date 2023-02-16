@@ -18,24 +18,3 @@ fun Application.configureSerialization() {
         json()
     }
 }
-// object UndefinableSerializer: JsonContentPolymorphicSerializer<Undefinable<T>>
-
-class UndefinableSerializer<T>(private val dataSerializer: KSerializer<T>): KSerializer<Undefinable<T>> {
-    override val descriptor: SerialDescriptor = dataSerializer.descriptor
-
-    override fun serialize(encoder: Encoder, value: Undefinable<T>) {
-        when (value) {
-            is Undefinable.Defined -> dataSerializer.serialize(encoder, value.value)
-            is Undefinable.Undefined -> Unit
-        }
-    }
-
-    @OptIn(ExperimentalSerializationApi::class)
-    override fun deserialize(decoder: Decoder): Undefinable<T> {
-        return try {
-            Undefinable.Defined(dataSerializer.deserialize(decoder))
-        } catch (e: MissingFieldException) {
-            Undefinable.Undefined
-        }
-    }
-}
