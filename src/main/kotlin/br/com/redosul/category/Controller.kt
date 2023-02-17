@@ -86,8 +86,8 @@ fun Application.categoryRoutes(dsl: DSLContext) {
             val records = dsl.selectFrom(CATEGORY)
                 .fetchInto(CATEGORY)
 
-            fun getChildren(parentId: CategoryId?): List<CategoryTreeResponse> {
-                return records.map { it.toResponse() }.filter {
+            fun getChildren(parentId: CategoryId?, plain: List<CategoryResponse>): List<CategoryTreeResponse> {
+                return plain.filter {
                     it.parentId == parentId
                 }.map {
                     CategoryTreeResponse(
@@ -95,12 +95,12 @@ fun Application.categoryRoutes(dsl: DSLContext) {
                         it.name,
                         it.slug,
                         it.description,
-                        getChildren(it.id).ifEmpty { null }
+                        getChildren(it.id, plain).ifEmpty { null }
                     )
                 }
             }
 
-            call.respond(getChildren(null))
+            call.respond(getChildren(null, records.map { it.toResponse() }))
         }
 
         post<CategoryResource> {resource ->
