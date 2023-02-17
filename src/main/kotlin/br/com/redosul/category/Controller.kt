@@ -2,8 +2,10 @@ package br.com.redosul.category
 
 import br.com.redosul.generated.tables.records.CategoryRecord
 import br.com.redosul.generated.tables.references.CATEGORY
+import br.com.redosul.generated.tables.references.PRODUCT
 import br.com.redosul.plugins.Slug
 import br.com.redosul.plugins.toSlug
+import br.com.redosul.product.toResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.resources.Resource
 import io.ktor.server.application.Application
@@ -15,9 +17,14 @@ import io.ktor.server.routing.routing
 import kotlinx.serialization.Serializable
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
-import org.jooq.impl.DSL.asterisk
-import org.jooq.impl.DSL.name
+import org.jooq.impl.DSL.*
+import org.jooq.impl.SQLDataType
 import java.time.ZonedDateTime
+import org.jooq.impl.DSL.*
+import org.jooq.impl.SQLDataType.*
+import org.jooq.*
+import org.jooq.impl.*
+
 
 @Serializable
 data class CategorySetPayload(
@@ -121,6 +128,32 @@ fun Application.categoryRoutes(dsl: DSLContext) {
             }
 
             call.respond(record.toResponse())
+        }
+
+        get<CategoryResource.Id.Product> {resource ->
+            val records = "subcategory".let {cteName ->
+                name(cteName).`as`(
+                    select(CATEGORY.asterisk())
+                        .from(CATEGORY)
+                        .where(CATEGORY.ID.eq(resource.parent.id.value))
+                        .unionAll(
+                            select(CATEGORY.asterisk()).from(table(cteName))
+                                .join(CATEGORY)
+                                .on(CATEGORY.PARENT_ID
+                                    .eq(field(name(cteName, CATEGORY.ID.name), CATEGORY.ID.dataType))
+                                )
+                        )
+                ).let {cte ->
+                    dsl.withRecursive(cte)
+                        .select(PRODUCT.asterisk())
+                        .from(cte)
+                        .join(PRODUCT)
+                        .on(PRODUCT.CATEGORY_ID.eq(field(name(cteName, CATEGORY.ID.name), CATEGORY.ID.dataType)))
+                        .fetchInto(PRODUCT)
+                }
+            }
+
+            call.respond(records.map { it.toResponse() })
         }
 
         post<CategoryResource.Id> {resource ->

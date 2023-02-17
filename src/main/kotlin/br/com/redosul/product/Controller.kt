@@ -45,7 +45,7 @@ data class ProductResponse(
     val slug: Slug = name.toSlug(),
     val description: String
 )
-private fun ProductRecord.toResponse() = ProductResponse(
+fun ProductRecord.toResponse() = ProductResponse(
     ProductId(id!!),
     CategoryId(categoryId!!),
     name!!,

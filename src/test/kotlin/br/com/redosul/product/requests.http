@@ -7,7 +7,7 @@ Content-Type: application/json
 
 {
   "categoryId": 1,
-  "name": "Product 1"
+  "name": "Product grand parent"
 }
 
 ###
