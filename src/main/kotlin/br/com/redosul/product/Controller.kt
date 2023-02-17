@@ -57,7 +57,7 @@ private fun ProductRecord.toResponse() = ProductResponse(
 @Resource("/products")
 class ProductsResource {
     @Resource("{id}")
-    class Id(val parent: ProductsResource = ProductsResource(), val id: Long)
+    class Id(val parent: ProductsResource = ProductsResource(), val id: ProductId)
 }
 
 fun Application.product(dsl: DSLContext) {
@@ -85,7 +85,7 @@ fun Application.product(dsl: DSLContext) {
 
         get<ProductsResource.Id> {resource ->
             val record = dsl.selectFrom(PRODUCT)
-                .where(PRODUCT.ID.eq(resource.id))
+                .where(PRODUCT.ID.eq(resource.id.value))
                 .fetchOneInto(PRODUCT)
 
             if (record == null) {
@@ -102,7 +102,7 @@ fun Application.product(dsl: DSLContext) {
             val record = dsl.update(PRODUCT)
                 .set(payload.toRecord())
                 .set(PRODUCT.UPDATED_AT, ZonedDateTime.now().toOffsetDateTime())
-                .where(PRODUCT.ID.eq(resource.id))
+                .where(PRODUCT.ID.eq(resource.id.value))
                 .returningResult(asterisk())
                 .fetchOneInto(PRODUCT)
 
@@ -117,7 +117,7 @@ fun Application.product(dsl: DSLContext) {
 
         delete<ProductsResource.Id> {resource ->
             val record = dsl.deleteFrom(PRODUCT)
-                .where(PRODUCT.ID.eq(resource.id))
+                .where(PRODUCT.ID.eq(resource.id.value))
                 .returningResult(asterisk())
                 .fetchOneInto(PRODUCT)
 

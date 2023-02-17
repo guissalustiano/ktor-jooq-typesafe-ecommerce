@@ -14,7 +14,9 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.routing
 import kotlinx.serialization.Serializable
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.jooq.impl.DSL.asterisk
+import org.jooq.impl.DSL.name
 import java.time.ZonedDateTime
 
 @Serializable
@@ -44,6 +46,15 @@ data class CategoryResponse(
     val slug: Slug,
     val description: String)
 
+@Serializable
+data class CategoryTreeResponse(
+    val id: CategoryId,
+    val name: String,
+    val slug: Slug,
+    val description: String,
+    val children: List<CategoryTreeResponse>?,
+)
+
 private fun CategoryRecord.toResponse() = CategoryResponse(
     CategoryId(id!!),
     parentId?.let { CategoryId(it) },
@@ -55,79 +66,97 @@ private fun CategoryRecord.toResponse() = CategoryResponse(
 @Resource("/categories")
 class CategoryResource {
     @Resource("{id}")
-    class Id(val parent: CategoryResource = CategoryResource(), val id: Long)
+    class Id(val parent: CategoryResource, val id: CategoryId) {
+        @Resource("products")
+        class Product(val parent: CategoryResource.Id)
+    }
+
 }
 
 fun Application.categoryRoutes(dsl: DSLContext) {
     routing {
         get<CategoryResource> {resource ->
-            val rows = dsl.selectFrom(CATEGORY)
+            val records = dsl.selectFrom(CATEGORY)
                 .fetchInto(CATEGORY)
 
-            call.respond(rows.map { it.toResponse() })
+            fun getChildren(parentId: CategoryId?): List<CategoryTreeResponse> {
+                return records.map { it.toResponse() }.filter {
+                    it.parentId == parentId
+                }.map {
+                    CategoryTreeResponse(
+                        it.id,
+                        it.name,
+                        it.slug,
+                        it.description,
+                        getChildren(it.id).ifEmpty { null }
+                    )
+                }
+            }
+
+            call.respond(getChildren(null))
         }
 
         post<CategoryResource> {resource ->
             val payload = call.receive<CategorySetPayload>()
 
-            val row = dsl.insertInto(CATEGORY)
+            val record = dsl.insertInto(CATEGORY)
                 .set(payload.toRecord())
                 .set(CATEGORY.UPDATED_AT, ZonedDateTime.now().toOffsetDateTime())
                 .set(CATEGORY.CREATED_AT, ZonedDateTime.now().toOffsetDateTime())
                 .returningResult(asterisk())
                 .fetchOneInto(CATEGORY)!!
 
-            call.respond(row.toResponse())
+            call.respond(record.toResponse())
             call.response.status(HttpStatusCode.Created)
         }
 
         get<CategoryResource.Id> {resource ->
-            val row = dsl.selectFrom(CATEGORY)
-                .where(CATEGORY.ID.eq(resource.id))
+            val record = dsl.selectFrom(CATEGORY)
+                .where(CATEGORY.ID.eq(resource.id.value))
                 .fetchOneInto(CATEGORY)
 
-            if (row == null) {
+            if (record == null) {
                 call.response.status(HttpStatusCode.NotFound)
                 return@get
             }
 
-            call.respond(row.toResponse())
+            call.respond(record.toResponse())
         }
 
         post<CategoryResource.Id> {resource ->
             val payload = call.receive<CategorySetPayload>()
 
-            require(resource.id != payload.parentId?.value) {
+            require(resource.id != payload.parentId) {
                 "Category cannot be its own parent"
             }
 
-            val row = dsl.update(CATEGORY)
+            val record = dsl.update(CATEGORY)
                 .set(payload.toRecord())
                 .set(CATEGORY.UPDATED_AT, ZonedDateTime.now().toOffsetDateTime())
-                .where(CATEGORY.ID.eq(resource.id))
+                .where(CATEGORY.ID.eq(resource.id.value))
                 .returningResult(asterisk())
                 .fetchOneInto(CATEGORY)
 
-            if (row == null) {
+            if (record == null) {
                 call.response.status(HttpStatusCode.NotFound)
                 return@post
             }
 
-            call.respond(row.toResponse())
+            call.respond(record.toResponse())
         }
 
         delete<CategoryResource.Id> {resource ->
-            val row = dsl.deleteFrom(CATEGORY)
-                .where(CATEGORY.ID.eq(resource.id))
+            val record = dsl.deleteFrom(CATEGORY)
+                .where(CATEGORY.ID.eq(resource.id.value))
                 .returningResult(asterisk())
                 .fetchOneInto(CATEGORY)
 
-            if (row == null) {
+            if (record == null) {
                 call.response.status(HttpStatusCode.NotFound)
                 return@delete
             }
 
-            call.respond(row.toResponse())
+            call.respond(record.toResponse())
         }
     }
 }
