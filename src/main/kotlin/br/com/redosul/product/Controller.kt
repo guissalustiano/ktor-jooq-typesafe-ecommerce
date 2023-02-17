@@ -4,6 +4,9 @@ import br.com.redosul.category.CategoryId
 import br.com.redosul.generated.tables.records.ProductRecord
 import br.com.redosul.generated.tables.references.PRODUCT
 import br.com.redosul.plugins.Slug
+import br.com.redosul.plugins.await
+import br.com.redosul.plugins.awaitFirstInto
+import br.com.redosul.plugins.awaitFirstOrNullInto
 import br.com.redosul.plugins.toSlug
 import io.ktor.http.HttpStatusCode
 import io.ktor.resources.Resource
@@ -63,8 +66,7 @@ class ProductsResource {
 fun Application.product(dsl: DSLContext) {
     routing {
         get<ProductsResource> {resource ->
-            val records = dsl.selectFrom(PRODUCT)
-                .fetchInto(PRODUCT)
+            val records = dsl.selectFrom(PRODUCT).await()
 
             call.respond(records.map { it.toResponse() })
         }
@@ -76,8 +78,8 @@ fun Application.product(dsl: DSLContext) {
                 .set(payload.toRecord())
                 .set(PRODUCT.UPDATED_AT, ZonedDateTime.now().toOffsetDateTime())
                 .set(PRODUCT.CREATED_AT, ZonedDateTime.now().toOffsetDateTime())
-                .returningResult(asterisk())
-                .fetchOneInto(PRODUCT)!!
+                .returningResult(PRODUCT.asterisk())
+                .awaitFirstInto(PRODUCT)
 
             call.respond(record.toResponse())
             call.response.status(HttpStatusCode.Created)
@@ -86,7 +88,7 @@ fun Application.product(dsl: DSLContext) {
         get<ProductsResource.Id> {resource ->
             val record = dsl.selectFrom(PRODUCT)
                 .where(PRODUCT.ID.eq(resource.id.value))
-                .fetchOneInto(PRODUCT)
+                .awaitFirstOrNullInto(PRODUCT)
 
             if (record == null) {
                 call.response.status(HttpStatusCode.NotFound)
@@ -103,8 +105,8 @@ fun Application.product(dsl: DSLContext) {
                 .set(payload.toRecord())
                 .set(PRODUCT.UPDATED_AT, ZonedDateTime.now().toOffsetDateTime())
                 .where(PRODUCT.ID.eq(resource.id.value))
-                .returningResult(asterisk())
-                .fetchOneInto(PRODUCT)
+                .returningResult(PRODUCT.asterisk())
+                .awaitFirstOrNullInto(PRODUCT)
 
             if (record == null) {
                 call.response.status(HttpStatusCode.NotFound)
@@ -118,8 +120,8 @@ fun Application.product(dsl: DSLContext) {
         delete<ProductsResource.Id> {resource ->
             val record = dsl.deleteFrom(PRODUCT)
                 .where(PRODUCT.ID.eq(resource.id.value))
-                .returningResult(asterisk())
-                .fetchOneInto(PRODUCT)
+                .returningResult(PRODUCT.asterisk())
+                .awaitFirstOrNullInto(PRODUCT)
 
             if (record == null) {
                 call.response.status(HttpStatusCode.NotFound)

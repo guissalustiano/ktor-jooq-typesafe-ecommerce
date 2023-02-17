@@ -9,6 +9,8 @@ val flyway_version: String by project
 val hikaricp_version: String by project
 val arrow_version : String by project
 val kotest_version : String by project
+val jooq_version : String by project
+val kotlin_couroutines_version : String by project
 
 plugins {
     kotlin("jvm") version "1.8.10"
@@ -43,6 +45,10 @@ dependencies {
     implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("com.zaxxer:HikariCP:$hikaricp_version")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_couroutines_version")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:$kotlin_couroutines_version")
+    implementation("org.jooq:jooq-kotlin:$jooq_version")
+    implementation("org.jooq:jooq-kotlin-coroutines:$jooq_version")
     jooqGenerator("org.postgresql:postgresql:$postgres_version")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("io.kotest:kotest-runner-junit5:$kotest_version")
@@ -65,7 +71,9 @@ flyway {
     cleanDisabled = false
 }
 
-jooq {configurations {
+jooq {
+    version.set(jooq_version)
+    configurations {
         create("main") {
             generateSchemaSourceOnCompilation.set(false)
 

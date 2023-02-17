@@ -1,9 +1,13 @@
 package br.com.redosul.category
 
+import br.com.redosul.generated.tables.Category
 import br.com.redosul.generated.tables.records.CategoryRecord
 import br.com.redosul.generated.tables.references.CATEGORY
 import br.com.redosul.generated.tables.references.PRODUCT
 import br.com.redosul.plugins.Slug
+import br.com.redosul.plugins.await
+import br.com.redosul.plugins.awaitFirstInto
+import br.com.redosul.plugins.awaitFirstOrNullInto
 import br.com.redosul.plugins.toSlug
 import br.com.redosul.product.toResponse
 import io.ktor.http.HttpStatusCode
@@ -16,11 +20,8 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.routing
 import kotlinx.serialization.Serializable
 import org.jooq.DSLContext
-import org.jooq.impl.DSL
 import org.jooq.impl.DSL.*
-import org.jooq.impl.SQLDataType
 import java.time.ZonedDateTime
-import org.jooq.impl.DSL.*
 import org.jooq.impl.SQLDataType.*
 import org.jooq.*
 import org.jooq.impl.*
@@ -83,8 +84,7 @@ class CategoryResource {
 fun Application.categoryRoutes(dsl: DSLContext) {
     routing {
         get<CategoryResource> {resource ->
-            val records = dsl.selectFrom(CATEGORY)
-                .fetchInto(CATEGORY)
+            val records = dsl.selectFrom(CATEGORY).await()
 
             fun getChildren(parentId: CategoryId?, plain: List<CategoryResponse>): List<CategoryTreeResponse> {
                 return plain.filter {
@@ -110,8 +110,8 @@ fun Application.categoryRoutes(dsl: DSLContext) {
                 .set(payload.toRecord())
                 .set(CATEGORY.UPDATED_AT, ZonedDateTime.now().toOffsetDateTime())
                 .set(CATEGORY.CREATED_AT, ZonedDateTime.now().toOffsetDateTime())
-                .returningResult(asterisk())
-                .fetchOneInto(CATEGORY)!!
+                .returningResult(CATEGORY.asterisk())
+                .awaitFirstInto(CATEGORY)
 
             call.respond(record.toResponse())
             call.response.status(HttpStatusCode.Created)
@@ -120,7 +120,7 @@ fun Application.categoryRoutes(dsl: DSLContext) {
         get<CategoryResource.Id> {resource ->
             val record = dsl.selectFrom(CATEGORY)
                 .where(CATEGORY.ID.eq(resource.id.value))
-                .fetchOneInto(CATEGORY)
+                .awaitFirstOrNullInto(CATEGORY)
 
             if (record == null) {
                 call.response.status(HttpStatusCode.NotFound)
@@ -167,8 +167,8 @@ fun Application.categoryRoutes(dsl: DSLContext) {
                 .set(payload.toRecord())
                 .set(CATEGORY.UPDATED_AT, ZonedDateTime.now().toOffsetDateTime())
                 .where(CATEGORY.ID.eq(resource.id.value))
-                .returningResult(asterisk())
-                .fetchOneInto(CATEGORY)
+                .returningResult(CATEGORY.asterisk())
+                .awaitFirstOrNullInto(CATEGORY)
 
             if (record == null) {
                 call.response.status(HttpStatusCode.NotFound)
@@ -181,8 +181,8 @@ fun Application.categoryRoutes(dsl: DSLContext) {
         delete<CategoryResource.Id> {resource ->
             val record = dsl.deleteFrom(CATEGORY)
                 .where(CATEGORY.ID.eq(resource.id.value))
-                .returningResult(asterisk())
-                .fetchOneInto(CATEGORY)
+                .returningResult(CATEGORY.asterisk())
+                .awaitFirstOrNullInto(CATEGORY)
 
             if (record == null) {
                 call.response.status(HttpStatusCode.NotFound)
