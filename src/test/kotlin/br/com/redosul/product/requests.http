@@ -7,19 +7,31 @@ Content-Type: application/json
 
 {
   "categoryId": 2,
-  "name": "Product 4",
+  "name": "Product 7",
   "variants": [
     {
       "type": "RGB",
       "red": 255,
       "green": 0,
       "blue": 0
+    },
+    {
+      "type": "RGB",
+      "red": 0,
+      "green": 255,
+      "blue": 0
+    },
+    {
+      "type": "RGB",
+      "red": 0,
+      "green": 0,
+      "blue": 255
     }
   ]
 }
 
 ###
-GET http://localhost:8080/products/1
+GET http://localhost:8080/products/5
 Accept: application/json
 
 ###

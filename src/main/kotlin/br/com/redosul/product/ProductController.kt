@@ -1,18 +1,8 @@
 package br.com.redosul.product
 
 import br.com.redosul.category.CategoryId
-import br.com.redosul.category.CategoryResource
-import br.com.redosul.category.toRecord
-import br.com.redosul.category.toResponse
-import br.com.redosul.generated.tables.records.ProductRecord
-import br.com.redosul.generated.tables.references.CATEGORY
-import br.com.redosul.generated.tables.references.PRODUCT
-import br.com.redosul.plugins.Id
-import br.com.redosul.plugins.Slug
-import br.com.redosul.plugins.await
-import br.com.redosul.plugins.awaitFirstInto
-import br.com.redosul.plugins.awaitFirstOrNullInto
-import br.com.redosul.plugins.toSlug
+import br.com.redosul.generated.tables.pojos.Product
+import br.com.redosul.generated.tables.pojos.ProductVariant
 import io.ktor.http.HttpStatusCode
 import io.ktor.resources.Resource
 import io.ktor.server.application.Application
@@ -21,10 +11,6 @@ import io.ktor.server.request.receive
 import io.ktor.server.resources.*
 import io.ktor.server.response.respond
 import io.ktor.server.routing.routing
-import kotlinx.serialization.Serializable
-import org.jooq.DSLContext
-import org.jooq.impl.DSL
-import java.time.ZonedDateTime
 
 @Resource("/products")
 class ProductsResource(val categoryId: CategoryId? = null) {

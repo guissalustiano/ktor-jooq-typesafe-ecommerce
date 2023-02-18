@@ -40,7 +40,7 @@ fun Application.categoryRoutes(service: CategoryService) {
 
         post<CategoryResource> {_ ->
             val payload = call.receive<CategorySetPayload>()
-            val record = service.create(payload.toRecord())
+            val record = service.create(payload)
 
             call.response.status(HttpStatusCode.Created)
             call.respond(record.toResponse())
@@ -48,7 +48,7 @@ fun Application.categoryRoutes(service: CategoryService) {
 
         post<CategoryResource.Id> {resource ->
             val payload = call.receive<CategorySetPayload>()
-            val record = service.updateById(resource.id, payload.toRecord())
+            val record = service.updateById(resource.id, payload)
 
             if (record == null) {
                 call.response.status(HttpStatusCode.NotFound)

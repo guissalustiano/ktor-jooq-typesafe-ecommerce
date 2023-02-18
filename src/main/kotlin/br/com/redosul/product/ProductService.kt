@@ -1,16 +1,21 @@
 package br.com.redosul.product
 
 import br.com.redosul.category.CategoryId
+import br.com.redosul.generated.tables.pojos.Category
 import br.com.redosul.generated.tables.pojos.Product
+import br.com.redosul.generated.tables.pojos.ProductVariant
 import br.com.redosul.generated.tables.records.ProductRecord
+import br.com.redosul.generated.tables.records.ProductVariantRecord
 import br.com.redosul.generated.tables.references.CATEGORY
 import br.com.redosul.generated.tables.references.PRODUCT
+import br.com.redosul.generated.tables.references.PRODUCT_VARIANT
 import br.com.redosul.plugins.awaitFirstInto
 import br.com.redosul.plugins.awaitFirstOrNullInto
 import br.com.redosul.plugins.awaitInto
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.noCondition
+import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.ZonedDateTime
 
 class ProductService(private val dsl: DSLContext) {
@@ -46,15 +51,32 @@ class ProductService(private val dsl: DSLContext) {
         .where(PRODUCT.ID.eq(id.value))
         .awaitFirstOrNullInto(PRODUCT, Product::class)
 
-    suspend fun create(payload: ProductSetPayload): Product {
-        val record = payload.toRecord()
+    suspend fun create(payload: ProductSetPayload): Pair<Product, List<ProductVariant>?> {
+        val productRecord = payload.toRecord()
+        val variantsRecord = payload.variants?.map { it.toRecord() }
 
-        return dsl.insertInto(PRODUCT)
-            .set(record)
-            .set(PRODUCT.UPDATED_AT, ZonedDateTime.now().toOffsetDateTime())
-            .set(PRODUCT.CREATED_AT, ZonedDateTime.now().toOffsetDateTime())
-            .returningResult(PRODUCT.asterisk())
-            .awaitFirstInto(PRODUCT, Product::class)
+        return dsl.transactionCoroutine {config ->
+            val dsl = config.dsl()
+
+            val product = dsl.insertInto(PRODUCT)
+                .set(productRecord)
+                .set(PRODUCT.UPDATED_AT, ZonedDateTime.now().toOffsetDateTime())
+                .set(PRODUCT.CREATED_AT, ZonedDateTime.now().toOffsetDateTime())
+                .returningResult(PRODUCT.asterisk())
+                .awaitFirstInto(PRODUCT, Product::class)
+
+            val variants = variantsRecord?.map {
+                dsl.insertInto(PRODUCT_VARIANT)
+                    .set(it)
+                    .set(PRODUCT_VARIANT.PRODUCT_ID, product.id)
+                    .set(PRODUCT_VARIANT.UPDATED_AT, ZonedDateTime.now().toOffsetDateTime())
+                    .set(PRODUCT_VARIANT.CREATED_AT, ZonedDateTime.now().toOffsetDateTime())
+                    .returningResult(PRODUCT_VARIANT.asterisk())
+                    .awaitFirstInto(PRODUCT_VARIANT, ProductVariant::class)
+            }
+
+            Pair(product, variants)
+        }
     }
 
     suspend fun updateById(id: ProductId, payload: ProductSetPayload): Product? {
@@ -72,6 +94,39 @@ class ProductService(private val dsl: DSLContext) {
         .where(PRODUCT.ID.eq(id.value))
         .returningResult(PRODUCT.asterisk())
         .awaitFirstOrNullInto(PRODUCT, Product::class)
+}
+
+private fun ProductVariantSetPayload.toRecord() = ProductVariantRecord().also {
+    fun setSize(size: ProductVariantSetPayload.Size) {
+        it.size = size.value
+    }
+
+    fun setColor(color: ProductVariantSetPayload.Color) {
+        it.colorName = color.name
+
+        if (color is ProductVariantSetPayload.Color.RGB) {
+            it.colorRed = color.red.toShort()
+            it.colorGreen = color.green.toShort()
+            it.colorBlue = color.blue.toShort()
+        }
+
+        if (color is ProductVariantSetPayload.Color.Image) {
+            it.colorUrl = color.url
+        }
+    }
+
+    if (this is ProductVariantSetPayload.Size) {
+        setSize(this)
+    }
+
+    if (this is ProductVariantSetPayload.Color) {
+        setColor(this)
+    }
+
+    if (this is ProductVariantSetPayload.ColorSize) {
+        setSize(this.size)
+        setColor(this.color)
+    }
 }
 
 private fun ProductSetPayload.toRecord() = ProductRecord().also {
