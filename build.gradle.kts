@@ -12,6 +12,7 @@ val arrow_version : String by project
 val kotest_version : String by project
 val jooq_version : String by project
 val kotlin_couroutines_version : String by project
+val r2dbc_pool_version: String by project
 
 plugins {
     kotlin("jvm") version "1.8.10"
@@ -52,6 +53,7 @@ dependencies {
     jooqGenerator("org.postgresql:postgresql:$postgres_version")
     implementation("org.postgresql:postgresql:$postgres_version")
     implementation("org.postgresql:r2dbc-postgresql:$postgres_r2dbc_version")
+    implementation("io.r2dbc:r2dbc-pool:$r2dbc_pool_version")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("io.kotest:kotest-runner-junit5:$kotest_version")
     testImplementation("io.kotest:kotest-property:$kotest_version")
