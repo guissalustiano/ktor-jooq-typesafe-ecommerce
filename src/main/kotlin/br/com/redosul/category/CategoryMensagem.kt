@@ -37,13 +37,6 @@ data class CategoryTreeResponse(
     val children: List<CategoryTreeResponse>?,
 )
 
-fun CategorySetPayload.toRecord() = CategoryRecord().also {
-    it.parentId = parentId?.value
-    it.name = name
-    it.slug = slug.value
-    it.description = description
-}
-
 fun Category.toResponse() = CategoryResponse(
     CategoryId(id!!),
     parentId?.let { CategoryId(it) },

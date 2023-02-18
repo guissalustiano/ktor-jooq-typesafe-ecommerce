@@ -46,14 +46,20 @@ class ProductService(private val dsl: DSLContext) {
         .where(PRODUCT.ID.eq(id.value))
         .awaitFirstOrNullInto(PRODUCT, Product::class)
 
-    suspend fun create(record: ProductRecord) = dsl.insertInto(PRODUCT)
-        .set(record)
-        .set(PRODUCT.UPDATED_AT, ZonedDateTime.now().toOffsetDateTime())
-        .set(PRODUCT.CREATED_AT, ZonedDateTime.now().toOffsetDateTime())
-        .returningResult(PRODUCT.asterisk())
-        .awaitFirstInto(PRODUCT, Product::class)
+    suspend fun create(payload: ProductSetPayload): Product {
+        val record = payload.toRecord()
 
-    suspend fun updateById(id: ProductId, record: ProductRecord): Product? {
+        return dsl.insertInto(PRODUCT)
+            .set(record)
+            .set(PRODUCT.UPDATED_AT, ZonedDateTime.now().toOffsetDateTime())
+            .set(PRODUCT.CREATED_AT, ZonedDateTime.now().toOffsetDateTime())
+            .returningResult(PRODUCT.asterisk())
+            .awaitFirstInto(PRODUCT, Product::class)
+    }
+
+    suspend fun updateById(id: ProductId, payload: ProductSetPayload): Product? {
+        val record = payload.toRecord()
+
         return dsl.update(PRODUCT)
             .set(record)
             .set(PRODUCT.UPDATED_AT, ZonedDateTime.now().toOffsetDateTime())
@@ -66,4 +72,11 @@ class ProductService(private val dsl: DSLContext) {
         .where(PRODUCT.ID.eq(id.value))
         .returningResult(PRODUCT.asterisk())
         .awaitFirstOrNullInto(PRODUCT, Product::class)
+}
+
+private fun ProductSetPayload.toRecord() = ProductRecord().also {
+    it.categoryId = categoryId.value
+    it.name = name
+    it.slug = slug.value
+    it.description = description
 }

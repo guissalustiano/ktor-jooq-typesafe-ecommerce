@@ -52,7 +52,8 @@ fun Application.product(service: ProductService) {
 
         post<ProductsResource> {_ ->
             val payload = call.receive<ProductSetPayload>()
-            val record = service.create(payload.toRecord())
+
+            val record = service.create(payload)
 
             call.response.status(HttpStatusCode.Created)
             call.respond(record.toResponse())
@@ -60,7 +61,7 @@ fun Application.product(service: ProductService) {
 
         post<ProductsResource.Id> {resource ->
             val payload = call.receive<ProductSetPayload>()
-            val record = service.updateById(resource.id, payload.toRecord())
+            val record = service.updateById(resource.id, payload)
 
             if (record == null) {
                 call.response.status(HttpStatusCode.NotFound)

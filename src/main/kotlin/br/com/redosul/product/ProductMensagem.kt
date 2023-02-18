@@ -1,11 +1,13 @@
 package br.com.redosul.product
 
 import br.com.redosul.category.CategoryId
+import br.com.redosul.generated.enums.ClotheSize
 import br.com.redosul.generated.tables.pojos.Product
 import br.com.redosul.generated.tables.records.ProductRecord
 import br.com.redosul.plugins.Id
 import br.com.redosul.plugins.Slug
 import br.com.redosul.plugins.toSlug
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 
@@ -18,7 +20,7 @@ data class ProductSetPayload(
     val categoryId: CategoryId,
     val name: String,
     val slug: Slug = name.toSlug(),
-    val description: String = ""
+    val description: String = "",
 )
 
 @Serializable
@@ -29,13 +31,6 @@ data class ProductResponse(
     val slug: Slug = name.toSlug(),
     val description: String
 )
-
-fun ProductSetPayload.toRecord() = ProductRecord().also {
-    it.categoryId = categoryId.value
-    it.name = name
-    it.slug = slug.value
-    it.description = description
-}
 
 fun Product.toResponse() = ProductResponse(
     ProductId(id!!),

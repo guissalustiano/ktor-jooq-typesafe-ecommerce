@@ -17,7 +17,8 @@ class CategoryService(private val dsl: DSLContext) {
         .where(CATEGORY.ID.eq(id.value))
         .awaitFirstOrNullInto(CATEGORY, Category::class)
 
-    suspend fun create(record: CategoryRecord): Category {
+    suspend fun create(payload: CategorySetPayload): Category {
+        val record = payload.toRecord()
         return dsl.transactionCoroutine {
             it.dsl().insertInto(CATEGORY)
                 .set(record)
@@ -32,10 +33,11 @@ class CategoryService(private val dsl: DSLContext) {
         }
     }
 
-    suspend fun updateById(id: CategoryId, record: CategoryRecord): Category? {
-        require(id.value != record.parentId) {
+    suspend fun updateById(id: CategoryId, payload: CategorySetPayload): Category? {
+        require(id != payload.parentId) {
             "Category cannot be its own parent"
         }
+        val record = payload.toRecord()
 
         return dsl.update(CATEGORY)
             .set(record)
@@ -49,4 +51,12 @@ class CategoryService(private val dsl: DSLContext) {
         .where(CATEGORY.ID.eq(id.value))
         .returningResult(CATEGORY.asterisk())
         .awaitFirstOrNullInto(CATEGORY, Category::class)
+}
+
+
+private fun CategorySetPayload.toRecord() = CategoryRecord().also {
+    it.parentId = parentId?.value
+    it.name = name
+    it.slug = slug.value
+    it.description = description
 }
