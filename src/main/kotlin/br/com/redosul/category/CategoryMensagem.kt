@@ -1,5 +1,6 @@
 package br.com.redosul.category
 
+import br.com.redosul.generated.tables.pojos.Category
 import br.com.redosul.generated.tables.records.CategoryRecord
 import br.com.redosul.plugins.Id
 import br.com.redosul.plugins.Slug
@@ -43,7 +44,7 @@ fun CategorySetPayload.toRecord() = CategoryRecord().also {
     it.description = description
 }
 
-fun CategoryRecord.toResponse() = CategoryResponse(
+fun Category.toResponse() = CategoryResponse(
     CategoryId(id!!),
     parentId?.let { CategoryId(it) },
     name!!,
@@ -65,4 +66,4 @@ private fun getChildren(parentId: CategoryId?, plain: List<CategoryResponse>): L
     }
 }
 
-fun Iterable<CategoryRecord>.toTreeResponse() = getChildren(null, this.map { it.toResponse() })
+fun Iterable<Category>.toTreeResponse() = getChildren(null, this.map { it.toResponse() })

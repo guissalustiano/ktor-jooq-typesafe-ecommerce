@@ -1,6 +1,7 @@
 package br.com.redosul.product
 
 import br.com.redosul.category.CategoryId
+import br.com.redosul.generated.tables.pojos.Product
 import br.com.redosul.generated.tables.records.ProductRecord
 import br.com.redosul.plugins.Id
 import br.com.redosul.plugins.Slug
@@ -36,7 +37,7 @@ fun ProductSetPayload.toRecord() = ProductRecord().also {
     it.description = description
 }
 
-fun ProductRecord.toResponse() = ProductResponse(
+fun Product.toResponse() = ProductResponse(
     ProductId(id!!),
     CategoryId(categoryId!!),
     name!!,

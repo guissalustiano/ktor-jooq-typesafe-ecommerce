@@ -1,10 +1,10 @@
 package br.com.redosul.plugins
 
+import br.com.redosul.generated.tables.pojos.Product
 import io.ktor.server.application.*
 import io.r2dbc.pool.ConnectionPool
 import io.r2dbc.pool.ConnectionPoolConfiguration
 import io.r2dbc.spi.ConnectionFactories
-import io.r2dbc.spi.ConnectionFactory
 import io.r2dbc.spi.ConnectionFactoryOptions
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -20,6 +20,7 @@ import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import reactor.core.publisher.Flux
 import java.time.Duration
+import kotlin.reflect.KClass
 
 fun Application.configureDatabases(): DSLContext {
     val dataSource = createDataSource()
@@ -27,7 +28,7 @@ fun Application.configureDatabases(): DSLContext {
 }
 
 private fun createDataSource(): ConnectionPool {
-    val url = System.getenv("DB_URL") ?: "r2dbc:postgresql://localhost:65432/redosul"
+    val url = "r2dbc:" + (System.getenv("DB_URL") ?: "postgresql://localhost:65432/redosul")
     val username = System.getenv("DB_USER") ?: "postgres"
     val password = System.getenv("DB_PASSWORD") ?: "password"
 
@@ -66,8 +67,16 @@ interface Id {
 }
 
 // async utils
-suspend fun <R : Record> ResultQuery<in R>.awaitFirstOrNullInto(table: Table<R>): R? = this.awaitFirstOrNull()?.into(table)
-suspend fun <R : Record> ResultQuery<in R>.awaitFirstInto(table: Table<R>): R = this.awaitFirst().into(table)
+suspend inline fun <R : Record> ResultQuery<in R>.awaitFirstOrNullInto(table: Table<R>): R? = this.awaitFirstOrNull()?.into(table)
+suspend inline fun <R : Record, E : Any> ResultQuery<in R>.awaitFirstOrNullInto(table: Table<R>, type: KClass<E>): E? = this.awaitFirstOrNullInto(table)?.into(type.java)
 
-suspend fun <R : Record> ResultQuery<R>.await(): Iterable<R> = Flux.from(this).collectList().awaitSingle()
-suspend fun <R : Record> ResultQuery<in R>.awaitInto(table: Table<R>): Iterable<R> = this.await().map { it.into(table) }
+suspend inline fun <R : Record> ResultQuery<in R>.awaitFirstInto(table: Table<R>): R = this.awaitFirst().into(table)
+suspend inline fun <R : Record, E : Any> ResultQuery<in R>.awaitFirstInto(table: Table<R>, type: KClass<E>): E = this.awaitFirstInto(table).into(type.java)
+
+suspend inline fun <R : Record> ResultQuery<R>.await(): Iterable<R> = Flux.from(this).collectList().awaitSingle()
+suspend inline fun <R : Record, E : Any> ResultQuery<R>.await(type: KClass<E>): Iterable<E> = this.await().map { it.into(type.java) }
+
+suspend inline fun <R : Record> ResultQuery<in R>.awaitInto(table: Table<R>): Iterable<R> = this.await().map { it.into(table) }
+suspend inline fun <R : Record, E : Any> ResultQuery<in R>.awaitInto(table: Table<R>, type: KClass<E>): Iterable<E> = this.awaitInto(table).map { it.into(type.java) }
+
+

@@ -50,6 +50,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:$kotlin_couroutines_version")
     implementation("org.jooq:jooq-kotlin:$jooq_version")
     implementation("org.jooq:jooq-kotlin-coroutines:$jooq_version")
+    testImplementation("io.ktor:ktor-server-test-host-jvm:2.2.3")
     jooqGenerator("org.postgresql:postgresql:$postgres_version")
     implementation("org.postgresql:postgresql:$postgres_version")
     implementation("org.postgresql:r2dbc-postgresql:$postgres_r2dbc_version")
@@ -58,6 +59,7 @@ dependencies {
     testImplementation("io.kotest:kotest-runner-junit5:$kotest_version")
     testImplementation("io.kotest:kotest-property:$kotest_version")
     testImplementation("io.kotest:kotest-assertions-core:$kotest_version")
+    testImplementation("io.kotest.extensions:kotest-assertions-ktor:$kotest_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }
 
@@ -67,7 +69,7 @@ tasks.withType<Test>().configureEach {
 
 
 flyway {
-    url = System.getenv("DB_URL")
+    url = "jdbc:" + System.getenv("DB_URL")
     user = System.getenv("DB_USER")
     password = System.getenv("DB_PASSWORD")
 
@@ -85,7 +87,7 @@ jooq {
                 logging = Logging.INFO
                 jdbc.apply {
                     driver = "org.postgresql.Driver"
-                    url = System.getenv("DB_URL")
+                    url = "jdbc:" + System.getenv("DB_URL")
                     user = System.getenv("DB_USER")
                     password = System.getenv("DB_PASSWORD")
                 }
@@ -103,6 +105,7 @@ jooq {
                         isImmutablePojos = true
                         isFluentSetters = true
                         isRelations = true
+                        isPojosAsKotlinDataClasses = true
                     }
                     target.apply {
                         packageName = "br.com.redosul.generated"

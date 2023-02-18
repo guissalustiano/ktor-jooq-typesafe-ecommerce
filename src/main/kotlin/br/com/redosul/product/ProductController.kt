@@ -50,7 +50,7 @@ fun Application.product(service: ProductService) {
             call.respond(record.toResponse())
         }
 
-        post<ProductsResource> {resource ->
+        post<ProductsResource> {_ ->
             val payload = call.receive<ProductSetPayload>()
             val record = service.create(payload.toRecord())
 
