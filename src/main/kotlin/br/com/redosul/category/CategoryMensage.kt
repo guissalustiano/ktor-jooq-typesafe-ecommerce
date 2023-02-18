@@ -1,7 +1,6 @@
 package br.com.redosul.category
 
 import br.com.redosul.generated.tables.pojos.Category
-import br.com.redosul.generated.tables.records.CategoryRecord
 import br.com.redosul.plugins.Id
 import br.com.redosul.plugins.Slug
 import br.com.redosul.plugins.toSlug

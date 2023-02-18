@@ -4,7 +4,6 @@ import br.com.redosul.category.CategoryId
 import br.com.redosul.generated.enums.ClotheSize
 import br.com.redosul.generated.tables.pojos.Product
 import br.com.redosul.generated.tables.pojos.ProductVariant
-import br.com.redosul.generated.tables.records.ProductRecord
 import br.com.redosul.plugins.Id
 import br.com.redosul.plugins.Slug
 import br.com.redosul.plugins.toSlug
