@@ -6,8 +6,8 @@ POST http://localhost:8080/products
 Content-Type: application/json
 
 {
-  "categoryId": 1,
-  "name": "Product grand parent"
+  "categoryId": 5,
+  "name": "Product children"
 }
 
 ###

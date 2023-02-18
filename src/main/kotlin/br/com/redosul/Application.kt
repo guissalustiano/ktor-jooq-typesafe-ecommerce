@@ -1,10 +1,12 @@
 package br.com.redosul
 
+import br.com.redosul.category.CategoryService
 import br.com.redosul.category.categoryRoutes
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import br.com.redosul.plugins.*
+import br.com.redosul.product.ProductService
 import br.com.redosul.product.product
 
 fun main() {
@@ -17,6 +19,6 @@ fun Application.module() {
     val dsl = configureDatabases()
     configureRouting()
 
-    product(dsl)
-    categoryRoutes(dsl)
+    product(ProductService(dsl))
+    categoryRoutes(CategoryService(dsl))
 }

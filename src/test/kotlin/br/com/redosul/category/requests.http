@@ -6,16 +6,12 @@ POST http://localhost:8080/categories
 Content-Type: application/json
 
 {
-  "parentId": 1,
+  "parentId": 4,
   "name": "Category children"
 }
 
 ###
-GET http://localhost:8080/categories/1
-Accept: application/json
-
-###
-GET http://localhost:8080/categories/1/products
+GET http://localhost:8080/categories/2
 Accept: application/json
 
 ###
@@ -27,7 +23,7 @@ Content-Type: application/json
 }
 
 ###
-DELETE http://localhost:8080/categories/3
+DELETE http://localhost:8080/categories/1
 Content-Type: application/json
 
 ###
