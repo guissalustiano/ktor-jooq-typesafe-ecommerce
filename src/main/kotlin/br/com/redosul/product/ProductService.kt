@@ -1,8 +1,7 @@
 package br.com.redosul.product
 
 import br.com.redosul.category.CategoryId
-import br.com.redosul.generated.tables.pojos.Product
-import br.com.redosul.generated.tables.pojos.ProductVariant
+import br.com.redosul.generated.tables.ProductVariant
 import br.com.redosul.generated.tables.records.ProductRecord
 import br.com.redosul.generated.tables.records.ProductVariantRecord
 import br.com.redosul.generated.tables.references.CATEGORY
@@ -10,16 +9,14 @@ import br.com.redosul.generated.tables.references.PRODUCT
 import br.com.redosul.generated.tables.references.PRODUCT_VARIANT
 import br.com.redosul.plugins.Slug
 import br.com.redosul.plugins.await
-import br.com.redosul.plugins.awaitFirstInto
-import br.com.redosul.plugins.awaitFirstOrNullInto
-import br.com.redosul.plugins.awaitInto
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 import org.jooq.Records
+import org.jooq.Record
 import org.jooq.impl.DSL.*
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.OffsetDateTime
-import java.time.ZonedDateTime
 
 class ProductService(private val dsl: DSLContext) {
 
@@ -43,46 +40,37 @@ class ProductService(private val dsl: DSLContext) {
             )
 
         return dsl.withRecursive(cte)
-                    .select(
+                    .selectDistinct(
                         PRODUCT.asterisk(),
                         multiset(
                             select(PRODUCT_VARIANT.asterisk())
                                 .from(PRODUCT_VARIANT)
                                 .where(PRODUCT_VARIANT.PRODUCT_ID.eq(PRODUCT.ID))
-                        ).`as`("variants").convertFrom { r -> r.collect(Records.intoList{it.into(ProductVariant::class.java)}) }
+                        ).`as`("variants")
                     )
                     .from(cte)
                     .join(PRODUCT)
                     .on(PRODUCT.CATEGORY_ID.eq(field(name(cteName, CATEGORY.ID.name), CATEGORY.ID.dataType)))
                     .await().map {
-                        val product = it.into(Product::class.java)
-                        val variants = it.get("variants", List::class.java) as List<ProductVariant>?
-
-                        Pair(product, variants).toDto()
-            }
+                        it.toProductWithVariantDto()
+                    }
 
 
     }
 
     suspend fun findById(id: ProductId): ProductDto? {
-        val query = dsl.select(
-            PRODUCT.asterisk(),
-            multiset(
-                select(PRODUCT_VARIANT.asterisk())
-                    .from(PRODUCT_VARIANT)
-                    .where(PRODUCT_VARIANT.PRODUCT_ID.eq(PRODUCT.ID))
-            ).`as`("variants").convertFrom { r -> r.collect(Records.intoList{it.into(ProductVariant::class.java)}) }
-        )
-            .from(PRODUCT)
-            .where(PRODUCT.ID.eq(id.value))
-            .awaitFirstOrNull()
-
-        query ?: return null
-
-        val product = query.into(Product::class.java)
-        val variants = query.get("variants", List::class.java) as List<ProductVariant>?
-
-        return Pair(product, variants).toDto()
+        return dsl.select(
+                PRODUCT.asterisk(),
+                multiset(
+                    select(PRODUCT_VARIANT.asterisk())
+                        .from(PRODUCT_VARIANT)
+                        .where(PRODUCT_VARIANT.PRODUCT_ID.eq(PRODUCT.ID))
+                ).`as`("variants")
+            )
+                .from(PRODUCT)
+                .where(PRODUCT.ID.eq(id.value))
+                .awaitFirstOrNull()
+                ?.toProductWithVariantDto()
     }
 
     suspend fun create(payload: ProductDto): ProductDto {
@@ -97,16 +85,16 @@ class ProductService(private val dsl: DSLContext) {
                 .set(PRODUCT.UPDATED_AT, OffsetDateTime.now())
                 .set(PRODUCT.CREATED_AT, OffsetDateTime.now())
                 .returningResult(PRODUCT.asterisk())
-                .awaitFirstInto(PRODUCT, Product::class)
+                .awaitFirst().into(PRODUCT)
 
             val variants = variantsRecord?.map {
                 dsl.insertInto(PRODUCT_VARIANT)
                     .set(it)
-                    .set(PRODUCT_VARIANT.PRODUCT_ID, product.id)
+                    .set(PRODUCT_VARIANT.PRODUCT_ID, product.into(PRODUCT).id)
                     .set(PRODUCT_VARIANT.UPDATED_AT, OffsetDateTime.now())
                     .set(PRODUCT_VARIANT.CREATED_AT, OffsetDateTime.now())
                     .returningResult(PRODUCT_VARIANT.asterisk())
-                    .awaitFirstInto(PRODUCT_VARIANT, ProductVariant::class)
+                    .awaitFirst().into(PRODUCT_VARIANT)
             }
 
             Pair(product, variants).toDto()
@@ -124,7 +112,7 @@ class ProductService(private val dsl: DSLContext) {
                 .set(PRODUCT.UPDATED_AT, OffsetDateTime.now())
                 .where(PRODUCT.ID.eq(id.value))
                 .returningResult(PRODUCT.asterisk())
-                .awaitFirstOrNullInto(PRODUCT, Product::class)
+                .awaitFirstOrNull()?.into(PRODUCT)
 
             val currentVariantsIds = dsl.select(PRODUCT_VARIANT.ID).from(PRODUCT_VARIANT)
                 .where(PRODUCT_VARIANT.PRODUCT_ID.eq(id.value))
@@ -139,7 +127,7 @@ class ProductService(private val dsl: DSLContext) {
                 dsl.deleteFrom(PRODUCT_VARIANT)
                     .where(PRODUCT_VARIANT.ID.eq(it))
                     .returningResult(PRODUCT_VARIANT.asterisk())
-                    .awaitFirstInto(PRODUCT_VARIANT, ProductVariant::class)
+                    .awaitFirstOrNull()?.into(PRODUCT)
             }
 
             // create variants that are not in db
@@ -150,7 +138,7 @@ class ProductService(private val dsl: DSLContext) {
                     .set(PRODUCT_VARIANT.UPDATED_AT, OffsetDateTime.now())
                     .set(PRODUCT_VARIANT.CREATED_AT, OffsetDateTime.now())
                     .returningResult(PRODUCT_VARIANT.asterisk())
-                    .awaitFirstInto(PRODUCT_VARIANT, ProductVariant::class)
+                    .awaitFirst().into(PRODUCT_VARIANT)
             }
 
             // update variants that are in db and payload
@@ -160,11 +148,10 @@ class ProductService(private val dsl: DSLContext) {
                     .set(PRODUCT_VARIANT.UPDATED_AT, OffsetDateTime.now())
                     .where(PRODUCT_VARIANT.ID.eq(it.id.value))
                     .returningResult(PRODUCT_VARIANT.asterisk())
-                    .awaitFirstInto(PRODUCT_VARIANT, ProductVariant::class)
+                    .awaitFirst().into(PRODUCT_VARIANT)
             }
 
-            product ?: return@transactionCoroutine null
-            Pair(product, newVariants + updatedVariants).toDto()
+            product?.let{ Pair(it, newVariants + updatedVariants).toDto() }
 
         }
     }
@@ -177,14 +164,13 @@ class ProductService(private val dsl: DSLContext) {
             val variants = dsl.deleteFrom(PRODUCT_VARIANT)
                     .where(PRODUCT_VARIANT.PRODUCT_ID.eq(id.value))
                     .returningResult(PRODUCT_VARIANT.asterisk())
-                    .awaitInto(PRODUCT_VARIANT, ProductVariant::class)
-                .toList()
+                    .await().map{it.into(PRODUCT_VARIANT)}
 
 
             val product = dsl.deleteFrom(PRODUCT)
                 .where(PRODUCT.ID.eq(id.value))
                 .returningResult(PRODUCT.asterisk())
-                .awaitFirstOrNullInto(PRODUCT, Product::class)
+                .awaitFirstOrNull()?.into(PRODUCT)
 
 
             product ?: return@transactionCoroutine null
@@ -192,6 +178,13 @@ class ProductService(private val dsl: DSLContext) {
             Pair(product, variants).toDto()
         }
     }
+}
+
+private fun ProductDto.toRecord() = ProductRecord().also {
+    it.categoryId = categoryId.value
+    it.name = name
+    it.slug = slug.value
+    it.description = description
 }
 
 private fun ProductVariantDto.toRecord() = ProductVariantRecord().also {
@@ -229,14 +222,7 @@ private fun ProductVariantDto.toRecord() = ProductVariantRecord().also {
     }
 }
 
-private fun ProductDto.toRecord() = ProductRecord().also {
-    it.categoryId = categoryId.value
-    it.name = name
-    it.slug = slug.value
-    it.description = description
-}
-
-private fun Pair<Product, List<ProductVariant>?>.toDto(): ProductDto {
+private fun Pair<ProductRecord, List<ProductVariantRecord>?>.toDto(): ProductDto {
     val (product, variants) = this
     return ProductDto(
         ProductId(product.id!!),
@@ -248,14 +234,22 @@ private fun Pair<Product, List<ProductVariant>?>.toDto(): ProductDto {
     )
 }
 
-private fun ProductVariant.toDto(): ProductVariantDto {
+
+private fun Record.toProductWithVariantDto(): ProductDto {
+    val product = this.into(PRODUCT)
+    val variants = this.get("variants", List::class.java)?.map { (it as Record).into(PRODUCT_VARIANT) }
+
+    return Pair(product, variants).toDto()
+}
+
+private fun ProductVariantRecord.toDto(): ProductVariantDto {
     requireNotNull(id)
     fun parseOrNullSize(): ProductVariantDto.Size? {
         size ?: return null
 
         return ProductVariantDto.Size(
-            ProductVariantId(id),
-            size
+            ProductVariantId(id!!),
+            size!!
         )
     }
 
@@ -264,9 +258,9 @@ private fun ProductVariant.toDto(): ProductVariantDto {
         colorUrl ?: return null
 
         return ProductVariantDto.Color.Image(
-            ProductVariantId(id),
-            colorName,
-            colorUrl
+            ProductVariantId(id!!),
+            colorName!!,
+            colorUrl!!
         )
     }
 
@@ -277,11 +271,11 @@ private fun ProductVariant.toDto(): ProductVariantDto {
         colorBlue ?: return null
 
         return ProductVariantDto.Color.RGB(
-            ProductVariantId(id),
-            colorName,
-            colorRed.toUByte(),
-            colorGreen.toUByte(),
-            colorBlue.toUByte(),
+            ProductVariantId(id!!),
+            colorName!!,
+            colorRed!!.toUByte(),
+            colorGreen!!.toUByte(),
+            colorBlue!!.toUByte(),
         )
     }
 
@@ -294,12 +288,12 @@ private fun ProductVariant.toDto(): ProductVariantDto {
 
     return when {
         color != null && size != null -> ProductVariantDto.ColorSize(
-            ProductVariantId(id),
+            ProductVariantId(id!!),
             size,
             color
         )
         color != null -> color
         size != null -> size
-        else -> error("Dirty ${ProductVariant::class} with id $id")
+        else -> error("Dirty ${ProductVariantDto::class} with id $id")
     }
 }

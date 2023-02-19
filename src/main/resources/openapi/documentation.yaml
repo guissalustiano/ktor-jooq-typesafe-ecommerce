@@ -34,7 +34,9 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/Iterable"
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/ProductDto"
     post:
       description: ""
       parameters:
@@ -49,7 +51,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/Pair"
+                $ref: "#/components/schemas/ProductDto"
   /products/{id}:
     delete:
       description: ""
@@ -75,7 +77,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/Pair"
+                $ref: "#/components/schemas/ProductDto"
     get:
       description: ""
       parameters:
@@ -100,7 +102,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/Pair"
+                $ref: "#/components/schemas/ProductDto"
     post:
       description: ""
       parameters:
@@ -125,7 +127,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/Product"
+                $ref: "#/components/schemas/ProductDto"
   /categories:
     get:
       description: ""
@@ -210,24 +212,15 @@ paths:
                 $ref: "#/components/schemas/CategoryDto"
 components:
   schemas:
-    Iterable:
+    ProductVariantDto:
       type: "object"
       properties: {}
-    Pair:
-      type: "object"
-      properties: {}
-    Product:
+    ProductDto:
       type: "object"
       properties:
         id:
           type: "string"
           format: "uuid"
-        createdAt:
-          type: "string"
-          format: "date-time"
-        updatedAt:
-          type: "string"
-          format: "date-time"
         categoryId:
           type: "string"
           format: "uuid"
@@ -237,6 +230,13 @@ components:
           type: "string"
         description:
           type: "string"
+        variants:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ProductVariantDto"
+    Instant:
+      type: "object"
+      properties: {}
     CategoryTreeDto:
       type: "object"
       properties:
@@ -253,6 +253,10 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/CategoryTreeDto"
+        createdAt:
+          $ref: "#/components/schemas/Instant"
+        updatedAt:
+          $ref: "#/components/schemas/Instant"
     CategoryDto:
       type: "object"
       properties:
@@ -269,8 +273,6 @@ components:
         description:
           type: "string"
         createdAt:
-          type: "string"
-          format: "date-time"
+          $ref: "#/components/schemas/Instant"
         updatedAt:
-          type: "string"
-          format: "date-time"
+          $ref: "#/components/schemas/Instant"

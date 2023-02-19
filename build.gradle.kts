@@ -104,10 +104,8 @@ jooq {
                     generate.apply {
                         isDeprecated = false
                         isRecords = true
-                        isImmutablePojos = true
                         isFluentSetters = true
                         isRelations = true
-                        isPojosAsKotlinDataClasses = true
                     }
                     target.apply {
                         packageName = "br.com.redosul.generated"

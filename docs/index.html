@@ -710,12 +710,10 @@
       "type" : "string"
     },
     "createdAt" : {
-      "type" : "string",
-      "format" : "date-time"
+      "$ref" : "#/components/schemas/Instant"
     },
     "updatedAt" : {
-      "type" : "string",
-      "format" : "date-time"
+      "$ref" : "#/components/schemas/Instant"
     }
   }
 };
@@ -740,31 +738,25 @@
       "items" : {
         "$ref" : "#/components/schemas/CategoryTreeDto"
       }
+    },
+    "createdAt" : {
+      "$ref" : "#/components/schemas/Instant"
+    },
+    "updatedAt" : {
+      "$ref" : "#/components/schemas/Instant"
     }
   }
 };
-            defs["Iterable"] = {
+            defs["Instant"] = {
   "type" : "object",
   "properties" : { }
 };
-            defs["Pair"] = {
-  "type" : "object",
-  "properties" : { }
-};
-            defs["Product"] = {
+            defs["ProductDto"] = {
   "type" : "object",
   "properties" : {
     "id" : {
       "type" : "string",
       "format" : "uuid"
-    },
-    "createdAt" : {
-      "type" : "string",
-      "format" : "date-time"
-    },
-    "updatedAt" : {
-      "type" : "string",
-      "format" : "date-time"
     },
     "categoryId" : {
       "type" : "string",
@@ -778,8 +770,18 @@
     },
     "description" : {
       "type" : "string"
+    },
+    "variants" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/components/schemas/ProductVariantDto"
+      }
     }
   }
+};
+            defs["ProductVariantDto"] = {
+  "type" : "object",
+  "properties" : { }
 };
   </script>
 
@@ -2393,7 +2395,7 @@ public class DefaultApiExample {
         DefaultApi apiInstance = new DefaultApi();
         Object categoryId = ; // Object | 
         try {
-            Iterable result = apiInstance.productsGet(categoryId);
+            array[ProductDto] result = apiInstance.productsGet(categoryId);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsGet");
@@ -2412,7 +2414,7 @@ public class DefaultApiExample {
         DefaultApi apiInstance = new DefaultApi();
         Object categoryId = ; // Object | 
         try {
-            Iterable result = apiInstance.productsGet(categoryId);
+            array[ProductDto] result = apiInstance.productsGet(categoryId);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsGet");
@@ -2431,7 +2433,7 @@ public class DefaultApiExample {
 DefaultApi *apiInstance = [[DefaultApi alloc] init];
 
 [apiInstance productsGetWith:categoryId
-              completionHandler: ^(Iterable output, NSError* error) {
+              completionHandler: ^(array[ProductDto] output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -2482,7 +2484,7 @@ namespace Example
 
             try
             {
-                Iterable result = apiInstance.productsGet(categoryId);
+                array[ProductDto] result = apiInstance.productsGet(categoryId);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -2597,7 +2599,11 @@ except ApiException as e:
   "content" : {
     "*/*" : {
       "schema" : {
-        "$ref" : "#/components/schemas/Iterable"
+        "type" : "array",
+        "items" : {
+          "$ref" : "#/components/schemas/ProductDto"
+        },
+        "x-content-type" : "*/*"
       }
     }
   }
@@ -2683,7 +2689,7 @@ public class DefaultApiExample {
         Object categoryId = ; // Object | 
         Object parent = ; // Object | 
         try {
-            Pair result = apiInstance.productsIdDelete(id, categoryId, parent);
+            ProductDto result = apiInstance.productsIdDelete(id, categoryId, parent);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsIdDelete");
@@ -2704,7 +2710,7 @@ public class DefaultApiExample {
         Object categoryId = ; // Object | 
         Object parent = ; // Object | 
         try {
-            Pair result = apiInstance.productsIdDelete(id, categoryId, parent);
+            ProductDto result = apiInstance.productsIdDelete(id, categoryId, parent);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsIdDelete");
@@ -2727,7 +2733,7 @@ DefaultApi *apiInstance = [[DefaultApi alloc] init];
 [apiInstance productsIdDeleteWith:id
     categoryId:categoryId
     parent:parent
-              completionHandler: ^(Pair output, NSError* error) {
+              completionHandler: ^(ProductDto output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -2782,7 +2788,7 @@ namespace Example
 
             try
             {
-                Pair result = apiInstance.productsIdDelete(id, categoryId, parent);
+                ProductDto result = apiInstance.productsIdDelete(id, categoryId, parent);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -2945,7 +2951,7 @@ except ApiException as e:
   "content" : {
     "*/*" : {
       "schema" : {
-        "$ref" : "#/components/schemas/Pair"
+        "$ref" : "#/components/schemas/ProductDto"
       }
     }
   }
@@ -3031,7 +3037,7 @@ public class DefaultApiExample {
         Object categoryId = ; // Object | 
         Object parent = ; // Object | 
         try {
-            Pair result = apiInstance.productsIdGet(id, categoryId, parent);
+            ProductDto result = apiInstance.productsIdGet(id, categoryId, parent);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsIdGet");
@@ -3052,7 +3058,7 @@ public class DefaultApiExample {
         Object categoryId = ; // Object | 
         Object parent = ; // Object | 
         try {
-            Pair result = apiInstance.productsIdGet(id, categoryId, parent);
+            ProductDto result = apiInstance.productsIdGet(id, categoryId, parent);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsIdGet");
@@ -3075,7 +3081,7 @@ DefaultApi *apiInstance = [[DefaultApi alloc] init];
 [apiInstance productsIdGetWith:id
     categoryId:categoryId
     parent:parent
-              completionHandler: ^(Pair output, NSError* error) {
+              completionHandler: ^(ProductDto output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -3130,7 +3136,7 @@ namespace Example
 
             try
             {
-                Pair result = apiInstance.productsIdGet(id, categoryId, parent);
+                ProductDto result = apiInstance.productsIdGet(id, categoryId, parent);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -3293,7 +3299,7 @@ except ApiException as e:
   "content" : {
     "*/*" : {
       "schema" : {
-        "$ref" : "#/components/schemas/Pair"
+        "$ref" : "#/components/schemas/ProductDto"
       }
     }
   }
@@ -3379,7 +3385,7 @@ public class DefaultApiExample {
         Object categoryId = ; // Object | 
         Object parent = ; // Object | 
         try {
-            Product result = apiInstance.productsIdPost(id, categoryId, parent);
+            ProductDto result = apiInstance.productsIdPost(id, categoryId, parent);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsIdPost");
@@ -3400,7 +3406,7 @@ public class DefaultApiExample {
         Object categoryId = ; // Object | 
         Object parent = ; // Object | 
         try {
-            Product result = apiInstance.productsIdPost(id, categoryId, parent);
+            ProductDto result = apiInstance.productsIdPost(id, categoryId, parent);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsIdPost");
@@ -3423,7 +3429,7 @@ DefaultApi *apiInstance = [[DefaultApi alloc] init];
 [apiInstance productsIdPostWith:id
     categoryId:categoryId
     parent:parent
-              completionHandler: ^(Product output, NSError* error) {
+              completionHandler: ^(ProductDto output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -3478,7 +3484,7 @@ namespace Example
 
             try
             {
-                Product result = apiInstance.productsIdPost(id, categoryId, parent);
+                ProductDto result = apiInstance.productsIdPost(id, categoryId, parent);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -3641,7 +3647,7 @@ except ApiException as e:
   "content" : {
     "*/*" : {
       "schema" : {
-        "$ref" : "#/components/schemas/Product"
+        "$ref" : "#/components/schemas/ProductDto"
       }
     }
   }
@@ -3725,7 +3731,7 @@ public class DefaultApiExample {
         DefaultApi apiInstance = new DefaultApi();
         Object categoryId = ; // Object | 
         try {
-            Pair result = apiInstance.productsPost(categoryId);
+            ProductDto result = apiInstance.productsPost(categoryId);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsPost");
@@ -3744,7 +3750,7 @@ public class DefaultApiExample {
         DefaultApi apiInstance = new DefaultApi();
         Object categoryId = ; // Object | 
         try {
-            Pair result = apiInstance.productsPost(categoryId);
+            ProductDto result = apiInstance.productsPost(categoryId);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsPost");
@@ -3763,7 +3769,7 @@ public class DefaultApiExample {
 DefaultApi *apiInstance = [[DefaultApi alloc] init];
 
 [apiInstance productsPostWith:categoryId
-              completionHandler: ^(Pair output, NSError* error) {
+              completionHandler: ^(ProductDto output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -3814,7 +3820,7 @@ namespace Example
 
             try
             {
-                Pair result = apiInstance.productsPost(categoryId);
+                ProductDto result = apiInstance.productsPost(categoryId);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -3929,7 +3935,7 @@ except ApiException as e:
   "content" : {
     "*/*" : {
       "schema" : {
-        "$ref" : "#/components/schemas/Pair"
+        "$ref" : "#/components/schemas/ProductDto"
       }
     }
   }

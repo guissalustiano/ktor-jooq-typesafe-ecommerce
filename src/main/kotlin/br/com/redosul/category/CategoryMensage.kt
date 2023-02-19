@@ -20,7 +20,13 @@ data class CategoryDto(
     val description: String = "",
     val createdAt: Instant? = null,
     val updatedAt: Instant? = null,
-)
+) {
+    init {
+        require(id != parentId) {
+            "Category cannot be its own parent"
+        }
+    }
+}
 
 @Serializable
 data class CategoryTreeDto(

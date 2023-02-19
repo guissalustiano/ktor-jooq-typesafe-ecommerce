@@ -7,7 +7,7 @@ Content-Type: application/json
 
 {
   "categoryId": "4dedba12-e47b-4e54-bbd9-95790f3beb3b",
-  "name": "Product 8",
+  "name": "Product 9",
   "variants": [
     {
       "type": "RGB",
@@ -31,19 +31,16 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:8080/products/efe3bcb3-999b-499d-9ef0-0ab463108312
+GET http://localhost:8080/products/1fb142f6-74e1-47fd-a4ef-afbf6d55ce12
 Accept: application/json
 
 ###
-POST http://localhost:8080/products/efe3bcb3-999b-499d-9ef0-0ab463108312
+POST http://localhost:8080/products/1fb142f6-74e1-47fd-a4ef-afbf6d55ce12
 Content-Type: application/json
 
 {
-  "id": "efe3bcb3-999b-499d-9ef0-0ab463108312",
-  "categoryId": "4dedba12-e47b-4e54-bbd9-95790f3beb3b",
-  "name": "Product 8",
-  "slug": "product-8",
-  "description": "",
+  "categoryId": "32b6498a-4ba8-4789-b41f-9027a1e814c5",
+  "name": "Product 8 outro",
   "variants": [
     {
       "type": "RGB",
@@ -54,7 +51,7 @@ Content-Type: application/json
     },
     {
       "type": "RGB",
-      "id": "004ce0e5-f7b9-46d8-bf33-bc346a87b2b6",
+      "id": "38dad0c4-8182-4595-8dfb-3fe41bcd0417",
       "name": "",
       "red": 0,
       "green": 255,
@@ -64,7 +61,7 @@ Content-Type: application/json
 }
 
 ###
-DELETE http://localhost:8080/products/e5d9763f-db6b-4037-9090-01512d651a20
+DELETE http://localhost:8080/products/1fb142f6-74e1-47fd-a4ef-afbf6d55ce12
 Content-Type: application/json
 
 ###

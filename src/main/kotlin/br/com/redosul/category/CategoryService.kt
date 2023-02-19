@@ -1,61 +1,58 @@
 package br.com.redosul.category
 
-import br.com.redosul.generated.tables.pojos.Category
 import br.com.redosul.generated.tables.records.CategoryRecord
 import br.com.redosul.generated.tables.references.CATEGORY
 import br.com.redosul.plugins.Slug
 import br.com.redosul.plugins.await
-import br.com.redosul.plugins.awaitFirstInto
-import br.com.redosul.plugins.awaitFirstOrNullInto
 import br.com.redosul.plugins.toKotlinInstant
+import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
+import org.jooq.Record
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.OffsetDateTime
-import kotlinx.datetime.toKotlinInstant
 
 class CategoryService(private val dsl: DSLContext) {
-    suspend fun findAll() : List<CategoryTreeDto> = dsl.selectFrom(CATEGORY).await(Category::class).toTreeResponse()
+    suspend fun findAll() : List<CategoryTreeDto> = dsl.selectFrom(CATEGORY)
+        .await()
+        .map{r -> r.toCategoryDto()}
+        .toTreeResponse()
 
-    suspend fun findById(id: CategoryId) : CategoryDto? = dsl.selectFrom(CATEGORY)
-        .where(CATEGORY.ID.eq(id.value))
-        .awaitFirstOrNullInto(CATEGORY, Category::class)?.toDto()
+    suspend fun findById(id: CategoryId) : CategoryDto? {
+        return dsl.selectFrom(CATEGORY)
+            .where(CATEGORY.ID.eq(id.value))
+            .awaitFirstOrNull()
+            ?.map{ r -> r.toCategoryDto() }
+    }
 
     suspend fun create(payload: CategoryDto): CategoryDto {
-        val record = payload.toRecord()
         return dsl.transactionCoroutine {
             it.dsl().insertInto(CATEGORY)
-                .set(record)
+                .set(payload.toRecord())
                 .set(CATEGORY.UPDATED_AT, OffsetDateTime.now())
                 .set(CATEGORY.CREATED_AT, OffsetDateTime.now())
                 .returningResult(CATEGORY.asterisk())
-                .awaitFirstInto(CATEGORY, Category::class).also { row ->
-                    require(row.id != row.parentId) {
-                        "Category cannot be its own parent"
-                    }
-                }
-        }.toDto()
+                .awaitFirst()
+                .map { r -> r.toCategoryDto() }
+        }
     }
 
     suspend fun updateById(id: CategoryId, payload: CategoryDto): CategoryDto? {
-        require(id != payload.parentId) {
-            "Category cannot be its own parent"
-        }
-        val record = payload.toRecord()
-
         return dsl.update(CATEGORY)
-            .set(record)
+            .set(payload.toRecord())
             .set(CATEGORY.UPDATED_AT, OffsetDateTime.now())
             .where(CATEGORY.ID.eq(id.value))
             .returningResult(CATEGORY.asterisk())
-            .awaitFirstOrNullInto(CATEGORY, Category::class)?.toDto()
+            .awaitFirstOrNull()
+            ?.map { r -> r.toCategoryDto() }
     }
 
     suspend fun deleteById(id: CategoryId) : CategoryDto? = dsl.deleteFrom(CATEGORY)
         .where(CATEGORY.ID.eq(id.value))
         .returningResult(CATEGORY.asterisk())
-        .awaitFirstOrNullInto(CATEGORY, Category::class)?.toDto()
+        .awaitFirstOrNull()
+        ?.map { r -> r.toCategoryDto() }
 }
-
 
 private fun CategoryDto.toRecord() = CategoryRecord().also {
     it.id = id.value
@@ -65,8 +62,9 @@ private fun CategoryDto.toRecord() = CategoryRecord().also {
     it.description = description
 }
 
+private fun Record.toCategoryDto() = this.into(CATEGORY).toDto()
 
-private fun Category.toDto() = CategoryDto(
+private fun CategoryRecord.toDto() = CategoryDto(
     CategoryId(id!!),
     parentId?.let { CategoryId(it) },
     name!!,
@@ -93,4 +91,4 @@ private fun getChildren(parentId: CategoryId?, plain: List<CategoryDto>): List<C
     }
 }
 
-private fun Iterable<Category>.toTreeResponse() = getChildren(null, this.map { it.toDto() })
+private fun List<CategoryDto>.toTreeResponse() = getChildren(null, this)
