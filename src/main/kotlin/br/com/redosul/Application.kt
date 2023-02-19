@@ -10,7 +10,7 @@ import br.com.redosul.product.ProductService
 import br.com.redosul.product.product
 
 fun main() {
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
+    embeddedServer(Netty, port = 8080, watchPaths = listOf("classes"), host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }
 

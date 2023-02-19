@@ -9,12 +9,15 @@ import br.com.redosul.generated.tables.records.ProductVariantRecord
 import br.com.redosul.generated.tables.references.CATEGORY
 import br.com.redosul.generated.tables.references.PRODUCT
 import br.com.redosul.generated.tables.references.PRODUCT_VARIANT
+import br.com.redosul.plugins.await
 import br.com.redosul.plugins.awaitFirstInto
 import br.com.redosul.plugins.awaitFirstOrNullInto
 import br.com.redosul.plugins.awaitInto
+import kotlinx.coroutines.reactive.awaitFirst
 import org.jooq.DSLContext
+import org.jooq.Records
 import org.jooq.impl.DSL
-import org.jooq.impl.DSL.noCondition
+import org.jooq.impl.DSL.*
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.ZonedDateTime
 
@@ -47,9 +50,24 @@ class ProductService(private val dsl: DSLContext) {
                     .awaitInto(PRODUCT, Product::class)
     }
 
-    suspend fun findById(id: ProductId) = dsl.selectFrom(PRODUCT)
-        .where(PRODUCT.ID.eq(id.value))
-        .awaitFirstOrNullInto(PRODUCT, Product::class)
+    suspend fun findById(id: ProductId): Pair<Product, List<ProductVariant>?> {
+        val query = dsl.select(
+            PRODUCT.asterisk(),
+            multiset(
+                select(PRODUCT_VARIANT.asterisk())
+                    .from(PRODUCT_VARIANT)
+                    .where(PRODUCT_VARIANT.PRODUCT_ID.eq(PRODUCT.ID))
+            ).`as`("variants").convertFrom { r -> r.collect(Records.intoList{it.into(ProductVariant::class.java)}) }
+        )
+            .from(PRODUCT)
+            .where(PRODUCT.ID.eq(id.value))
+            .awaitFirst()
+
+        val product = query.into(Product::class.java)
+        val variants = query.get("variants", List::class.java) as List<ProductVariant>?
+
+        return Pair(product, variants)
+    }
 
     suspend fun create(payload: ProductSetPayload): Pair<Product, List<ProductVariant>?> {
         val productRecord = payload.toRecord()
@@ -82,18 +100,43 @@ class ProductService(private val dsl: DSLContext) {
     suspend fun updateById(id: ProductId, payload: ProductSetPayload): Product? {
         val record = payload.toRecord()
 
-        return dsl.update(PRODUCT)
-            .set(record)
-            .set(PRODUCT.UPDATED_AT, ZonedDateTime.now().toOffsetDateTime())
-            .where(PRODUCT.ID.eq(id.value))
-            .returningResult(PRODUCT.asterisk())
-            .awaitFirstOrNullInto(PRODUCT, Product::class)
+        return dsl.transactionCoroutine {config ->
+            val dsl = config.dsl()
+
+            val product =  dsl.update(PRODUCT)
+                .set(record)
+                .set(PRODUCT.UPDATED_AT, ZonedDateTime.now().toOffsetDateTime())
+                .where(PRODUCT.ID.eq(id.value))
+                .returningResult(PRODUCT.asterisk())
+                .awaitFirstOrNullInto(PRODUCT, Product::class)
+
+            // TODO: update variants
+
+            product
+        }
     }
 
-    suspend fun deleteById(id: ProductId) = dsl.deleteFrom(PRODUCT)
-        .where(PRODUCT.ID.eq(id.value))
-        .returningResult(PRODUCT.asterisk())
-        .awaitFirstOrNullInto(PRODUCT, Product::class)
+    suspend fun deleteById(id: ProductId): Pair<Product, List<ProductVariant>?>? {
+
+        return dsl.transactionCoroutine {config ->
+            val dsl = config.dsl()
+
+            val product = dsl.deleteFrom(PRODUCT)
+                .where(PRODUCT.ID.eq(id.value))
+                .returningResult(PRODUCT.asterisk())
+                .awaitFirstOrNullInto(PRODUCT, Product::class)
+
+            product ?: return@transactionCoroutine null
+
+            val variants = dsl.deleteFrom(PRODUCT_VARIANT)
+                    .where(PRODUCT_VARIANT.PRODUCT_ID.eq(product.id))
+                    .returningResult(PRODUCT_VARIANT.asterisk())
+                    .awaitInto(PRODUCT_VARIANT, ProductVariant::class)
+                .toList()
+
+            Pair(product, variants)
+        }
+    }
 }
 
 private fun ProductVariantSetPayload.toRecord() = ProductVariantRecord().also {

@@ -27,10 +27,8 @@ version = "0.0.1"
 application {
     mainClass.set("br.com.redosul.ApplicationKt")
 
-    val isDevelopment: Boolean = project.ext.has("development")
+    val isDevelopment: Boolean = true // project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
-
-
 }
 
 repositories {
