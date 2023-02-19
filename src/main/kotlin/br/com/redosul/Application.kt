@@ -18,6 +18,8 @@ fun Application.module() {
     configureSerialization()
     val dsl = configureDatabases()
     configureRouting()
+    configureCORS()
+    configureOpenAPI()
 
     product(ProductService(dsl))
     categoryRoutes(CategoryService(dsl))

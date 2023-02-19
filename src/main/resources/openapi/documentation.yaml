@@ -1,0 +1,272 @@
+openapi: "3.0.3"
+info:
+  title: "br_com_redosul_server API"
+  description: "br_com_redosul_server API"
+  version: "1.0.0"
+servers:
+- url: "https://br_com_redosul_server"
+paths:
+  /categories:
+    get:
+      description: ""
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/CategoryTreeResponse"
+    post:
+      description: ""
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CategoryResponse"
+  /categories/{id}:
+    delete:
+      description: ""
+      parameters:
+      - name: "parent"
+        in: "query"
+        required: true
+        schema:
+          type: "object"
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CategoryResponse"
+    get:
+      description: ""
+      parameters:
+      - name: "parent"
+        in: "query"
+        required: true
+        schema:
+          type: "object"
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CategoryResponse"
+    post:
+      description: ""
+      parameters:
+      - name: "parent"
+        in: "query"
+        required: true
+        schema:
+          type: "object"
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CategoryResponse"
+  /:
+    get:
+      description: ""
+      responses:
+        "200":
+          description: "OK"
+          content:
+            text/plain:
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "Hello World!"
+  /products:
+    get:
+      description: ""
+      parameters:
+      - name: "categoryId"
+        in: "query"
+        required: false
+        schema:
+          type: "object"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/ProductResponse"
+    post:
+      description: ""
+      parameters:
+      - name: "categoryId"
+        in: "query"
+        required: false
+        schema:
+          type: "object"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+  /products/{id}:
+    delete:
+      description: ""
+      parameters:
+      - name: "categoryId"
+        in: "query"
+        required: false
+        schema:
+          type: "object"
+      - name: "parent"
+        in: "query"
+        required: false
+        schema:
+          type: "object"
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+    get:
+      description: ""
+      parameters:
+      - name: "categoryId"
+        in: "query"
+        required: false
+        schema:
+          type: "object"
+      - name: "parent"
+        in: "query"
+        required: false
+        schema:
+          type: "object"
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+    post:
+      description: ""
+      parameters:
+      - name: "categoryId"
+        in: "query"
+        required: false
+        schema:
+          type: "object"
+      - name: "parent"
+        in: "query"
+        required: false
+        schema:
+          type: "object"
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+components:
+  schemas:
+    CategoryTreeResponse:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+        name:
+          type: "string"
+        slug:
+          type: "string"
+        description:
+          type: "string"
+        children:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/CategoryTreeResponse"
+    CategoryId:
+      type: "object"
+      properties:
+        value:
+          type: "integer"
+          format: "int64"
+    CategoryResponse:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+        parentId:
+          $ref: "#/components/schemas/CategoryId"
+        name:
+          type: "string"
+        slug:
+          type: "string"
+        description:
+          type: "string"
+    ProductVariantResponse:
+      type: "object"
+      properties: {}
+    ProductResponse:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+        categoryId:
+          type: "integer"
+          format: "int64"
+        name:
+          type: "string"
+        slug:
+          type: "string"
+        description:
+          type: "string"
+        variants:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ProductVariantResponse"
