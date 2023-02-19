@@ -62,10 +62,6 @@ private fun createDSLContext(dataSource: ConnectionPool): DSLContext {
     return DSL.using(dataSource, SQLDialect.POSTGRES, settings)
 }
 
-interface Id {
-    val value: Long
-}
-
 // async utils
 suspend inline fun <R : Record> ResultQuery<in R>.awaitFirstOrNullInto(table: Table<R>): R? = this.awaitFirstOrNull()?.into(table)
 suspend inline fun <R : Record, E : Any> ResultQuery<in R>.awaitFirstOrNullInto(table: Table<R>, type: KClass<E>): E? = this.awaitFirstOrNullInto(table)?.into(type.java)
@@ -73,10 +69,10 @@ suspend inline fun <R : Record, E : Any> ResultQuery<in R>.awaitFirstOrNullInto(
 suspend inline fun <R : Record> ResultQuery<in R>.awaitFirstInto(table: Table<R>): R = this.awaitFirst().into(table)
 suspend inline fun <R : Record, E : Any> ResultQuery<in R>.awaitFirstInto(table: Table<R>, type: KClass<E>): E = this.awaitFirstInto(table).into(type.java)
 
-suspend inline fun <R : Record> ResultQuery<R>.await(): Iterable<R> = Flux.from(this).collectList().awaitSingle()
-suspend inline fun <R : Record, E : Any> ResultQuery<R>.await(type: KClass<E>): Iterable<E> = this.await().map { it.into(type.java) }
+suspend inline fun <R : Record> ResultQuery<R>.await(): List<R> = Flux.from(this).collectList().awaitSingle()
+suspend inline fun <R : Record, E : Any> ResultQuery<R>.await(type: KClass<E>): List<E> = this.await().map { it.into(type.java) }
 
-suspend inline fun <R : Record> ResultQuery<in R>.awaitInto(table: Table<R>): Iterable<R> = this.await().map { it.into(table) }
-suspend inline fun <R : Record, E : Any> ResultQuery<in R>.awaitInto(table: Table<R>, type: KClass<E>): Iterable<E> = this.awaitInto(table).map { it.into(type.java) }
+suspend inline fun <R : Record> ResultQuery<in R>.awaitInto(table: Table<R>): List<R> = this.await().map { it.into(table) }
+suspend inline fun <R : Record, E : Any> ResultQuery<in R>.awaitInto(table: Table<R>, type: KClass<E>): List<E> = this.awaitInto(table).map { it.into(type.java) }
 
 

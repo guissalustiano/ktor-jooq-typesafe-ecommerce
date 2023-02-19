@@ -6,88 +6,6 @@ info:
 servers:
 - url: "https://br_com_redosul_server"
 paths:
-  /categories:
-    get:
-      description: ""
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                type: "array"
-                items:
-                  $ref: "#/components/schemas/CategoryTreeResponse"
-    post:
-      description: ""
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/CategoryResponse"
-  /categories/{id}:
-    delete:
-      description: ""
-      parameters:
-      - name: "parent"
-        in: "query"
-        required: true
-        schema:
-          type: "object"
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "integer"
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/CategoryResponse"
-    get:
-      description: ""
-      parameters:
-      - name: "parent"
-        in: "query"
-        required: true
-        schema:
-          type: "object"
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "integer"
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/CategoryResponse"
-    post:
-      description: ""
-      parameters:
-      - name: "parent"
-        in: "query"
-        required: true
-        schema:
-          type: "object"
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "integer"
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/CategoryResponse"
   /:
     get:
       description: ""
@@ -116,9 +34,7 @@ paths:
           content:
             '*/*':
               schema:
-                type: "array"
-                items:
-                  $ref: "#/components/schemas/ProductResponse"
+                $ref: "#/components/schemas/Iterable"
     post:
       description: ""
       parameters:
@@ -133,7 +49,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/ProductResponse"
+                $ref: "#/components/schemas/Pair"
   /products/{id}:
     delete:
       description: ""
@@ -152,14 +68,14 @@ paths:
         in: "path"
         required: true
         schema:
-          type: "integer"
+          type: "object"
       responses:
         "200":
           description: "OK"
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/ProductResponse"
+                $ref: "#/components/schemas/Pair"
     get:
       description: ""
       parameters:
@@ -177,14 +93,14 @@ paths:
         in: "path"
         required: true
         schema:
-          type: "integer"
+          type: "object"
       responses:
         "200":
           description: "OK"
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/ProductResponse"
+                $ref: "#/components/schemas/Pair"
     post:
       description: ""
       parameters:
@@ -202,22 +118,131 @@ paths:
         in: "path"
         required: true
         schema:
-          type: "integer"
+          type: "object"
       responses:
         "200":
           description: "OK"
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/ProductResponse"
+                $ref: "#/components/schemas/Product"
+  /categories:
+    get:
+      description: ""
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/CategoryTreeDto"
+    post:
+      description: ""
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CategoryDto"
+  /categories/{id}:
+    delete:
+      description: ""
+      parameters:
+      - name: "parent"
+        in: "query"
+        required: true
+        schema:
+          type: "object"
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "object"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CategoryDto"
+    get:
+      description: ""
+      parameters:
+      - name: "parent"
+        in: "query"
+        required: true
+        schema:
+          type: "object"
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "object"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CategoryDto"
+    post:
+      description: ""
+      parameters:
+      - name: "parent"
+        in: "query"
+        required: true
+        schema:
+          type: "object"
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "object"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CategoryDto"
 components:
   schemas:
-    CategoryTreeResponse:
+    Iterable:
+      type: "object"
+      properties: {}
+    Pair:
+      type: "object"
+      properties: {}
+    Product:
       type: "object"
       properties:
         id:
-          type: "integer"
-          format: "int64"
+          type: "string"
+          format: "uuid"
+        createdAt:
+          type: "string"
+          format: "date-time"
+        updatedAt:
+          type: "string"
+          format: "date-time"
+        categoryId:
+          type: "string"
+          format: "uuid"
+        name:
+          type: "string"
+        slug:
+          type: "string"
+        description:
+          type: "string"
+    CategoryTreeDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
         name:
           type: "string"
         slug:
@@ -227,46 +252,25 @@ components:
         children:
           type: "array"
           items:
-            $ref: "#/components/schemas/CategoryTreeResponse"
-    CategoryId:
-      type: "object"
-      properties:
-        value:
-          type: "integer"
-          format: "int64"
-    CategoryResponse:
+            $ref: "#/components/schemas/CategoryTreeDto"
+    CategoryDto:
       type: "object"
       properties:
         id:
-          type: "integer"
-          format: "int64"
+          type: "string"
+          format: "uuid"
         parentId:
-          $ref: "#/components/schemas/CategoryId"
+          type: "string"
+          format: "uuid"
         name:
           type: "string"
         slug:
           type: "string"
         description:
           type: "string"
-    ProductVariantResponse:
-      type: "object"
-      properties: {}
-    ProductResponse:
-      type: "object"
-      properties:
-        id:
-          type: "integer"
-          format: "int64"
-        categoryId:
-          type: "integer"
-          format: "int64"
-        name:
+        createdAt:
           type: "string"
-        slug:
+          format: "date-time"
+        updatedAt:
           type: "string"
-        description:
-          type: "string"
-        variants:
-          type: "array"
-          items:
-            $ref: "#/components/schemas/ProductVariantResponse"
+          format: "date-time"

@@ -1,8 +1,6 @@
 package br.com.redosul.product
 
 import br.com.redosul.category.CategoryId
-import br.com.redosul.generated.tables.pojos.Product
-import br.com.redosul.generated.tables.pojos.ProductVariant
 import io.ktor.http.HttpStatusCode
 import io.ktor.resources.Resource
 import io.ktor.server.application.Application
@@ -21,51 +19,36 @@ class ProductsResource(val categoryId: CategoryId? = null) {
 fun Application.product(service: ProductService) {
     routing {
         get<ProductsResource> {resource ->
-            val records = service.findAll(resource.categoryId)
-            call.respond(records.map { it.toResponse() })
+            service.findAll(resource.categoryId).let {
+                call.respond(it)
+            }
         }
 
         get<ProductsResource.Id> { resource ->
-            val record = service.findById(resource.id)
-
-            if (record == null) {
-                call.response.status(HttpStatusCode.NotFound)
-                return@get
+            service.findById(resource.id)?.let {
+                call.respond(it)
             }
-
-            call.respond(record.toResponse())
         }
 
         post<ProductsResource> {_ ->
-            val payload = call.receive<ProductSetPayload>()
-
-            val record = service.create(payload)
-
-            call.response.status(HttpStatusCode.Created)
-            call.respond(record.toResponse())
+            val payload = call.receive<ProductDto>()
+            service.create(payload).let {
+                call.response.status(HttpStatusCode.Created)
+                call.respond(it)
+            }
         }
 
         post<ProductsResource.Id> {resource ->
-            val payload = call.receive<ProductSetPayload>()
-            val record = service.updateById(resource.id, payload)
-
-            if (record == null) {
-                call.response.status(HttpStatusCode.NotFound)
-                return@post
+            val payload = call.receive<ProductDto>()
+            service.updateById(resource.id, payload)?.let {
+                call.respond(it)
             }
-
-            call.respond(record.toResponse())
         }
 
         delete<ProductsResource.Id> {resource ->
-            val record = service.deleteById(resource.id)
-
-            if (record == null) {
-                call.response.status(HttpStatusCode.NotFound)
-                return@delete
+            service.deleteById(resource.id)?.let {
+                call.respond(it)
             }
-
-            call.respond(record.toResponse())
         }
     }
 }

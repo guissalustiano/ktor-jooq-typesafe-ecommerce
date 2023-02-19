@@ -1,9 +1,9 @@
 create table category(
-    id bigserial primary key,
+    id uuid primary key not null default gen_random_uuid(),
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
 
-    parent_id bigint references category(id),
+    parent_id uuid references category(id),
 
     name text not null,
     slug text not null unique,
@@ -11,11 +11,11 @@ create table category(
 );
 
 create table product(
-    id bigserial primary key,
+    id uuid primary key not null default gen_random_uuid(),
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
 
-    category_id bigint references category(id) not null,
+    category_id uuid references category(id) not null,
 
     name text not null,
     slug text not null unique,
@@ -25,11 +25,11 @@ create table product(
 CREATE TYPE clothe_size AS ENUM ('P', 'M', 'G', 'GG');
 
 create table product_variant(
-    id bigserial primary key,
+    id uuid primary key not null default gen_random_uuid(),
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
 
-    product_id bigint references product(id) not null,
+    product_id uuid references product(id) not null,
 
     -- Color RGB
     color_name text,

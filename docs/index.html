@@ -689,24 +689,16 @@
   <script>
     // Script section to load models into a JS Var
     var defs = {}
-            defs["CategoryId"] = {
-  "type" : "object",
-  "properties" : {
-    "value" : {
-      "type" : "integer",
-      "format" : "int64"
-    }
-  }
-};
-            defs["CategoryResponse"] = {
+            defs["CategoryDto"] = {
   "type" : "object",
   "properties" : {
     "id" : {
-      "type" : "integer",
-      "format" : "int64"
+      "type" : "string",
+      "format" : "uuid"
     },
     "parentId" : {
-      "$ref" : "#/components/schemas/CategoryId"
+      "type" : "string",
+      "format" : "uuid"
     },
     "name" : {
       "type" : "string"
@@ -716,15 +708,23 @@
     },
     "description" : {
       "type" : "string"
+    },
+    "createdAt" : {
+      "type" : "string",
+      "format" : "date-time"
+    },
+    "updatedAt" : {
+      "type" : "string",
+      "format" : "date-time"
     }
   }
 };
-            defs["CategoryTreeResponse"] = {
+            defs["CategoryTreeDto"] = {
   "type" : "object",
   "properties" : {
     "id" : {
-      "type" : "integer",
-      "format" : "int64"
+      "type" : "string",
+      "format" : "uuid"
     },
     "name" : {
       "type" : "string"
@@ -738,21 +738,37 @@
     "children" : {
       "type" : "array",
       "items" : {
-        "$ref" : "#/components/schemas/CategoryTreeResponse"
+        "$ref" : "#/components/schemas/CategoryTreeDto"
       }
     }
   }
 };
-            defs["ProductResponse"] = {
+            defs["Iterable"] = {
+  "type" : "object",
+  "properties" : { }
+};
+            defs["Pair"] = {
+  "type" : "object",
+  "properties" : { }
+};
+            defs["Product"] = {
   "type" : "object",
   "properties" : {
     "id" : {
-      "type" : "integer",
-      "format" : "int64"
+      "type" : "string",
+      "format" : "uuid"
+    },
+    "createdAt" : {
+      "type" : "string",
+      "format" : "date-time"
+    },
+    "updatedAt" : {
+      "type" : "string",
+      "format" : "date-time"
     },
     "categoryId" : {
-      "type" : "integer",
-      "format" : "int64"
+      "type" : "string",
+      "format" : "uuid"
     },
     "name" : {
       "type" : "string"
@@ -762,18 +778,8 @@
     },
     "description" : {
       "type" : "string"
-    },
-    "variants" : {
-      "type" : "array",
-      "items" : {
-        "$ref" : "#/components/schemas/ProductVariantResponse"
-      }
     }
   }
-};
-            defs["ProductVariantResponse"] = {
-  "type" : "object",
-  "properties" : { }
 };
   </script>
 
@@ -897,7 +903,7 @@ public class DefaultApiExample {
         
         DefaultApi apiInstance = new DefaultApi();
         try {
-            array[CategoryTreeResponse] result = apiInstance.categoriesGet();
+            array[CategoryTreeDto] result = apiInstance.categoriesGet();
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#categoriesGet");
@@ -915,7 +921,7 @@ public class DefaultApiExample {
     public static void main(String[] args) {
         DefaultApi apiInstance = new DefaultApi();
         try {
-            array[CategoryTreeResponse] result = apiInstance.categoriesGet();
+            array[CategoryTreeDto] result = apiInstance.categoriesGet();
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#categoriesGet");
@@ -933,7 +939,7 @@ public class DefaultApiExample {
 DefaultApi *apiInstance = [[DefaultApi alloc] init];
 
 [apiInstance categoriesGetWithCompletionHandler: 
-              ^(array[CategoryTreeResponse] output, NSError* error) {
+              ^(array[CategoryTreeDto] output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -980,7 +986,7 @@ namespace Example
 
             try
             {
-                array[CategoryTreeResponse] result = apiInstance.categoriesGet();
+                array[CategoryTreeDto] result = apiInstance.categoriesGet();
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -1071,7 +1077,7 @@ except ApiException as e:
       "schema" : {
         "type" : "array",
         "items" : {
-          "$ref" : "#/components/schemas/CategoryTreeResponse"
+          "$ref" : "#/components/schemas/CategoryTreeDto"
         },
         "x-content-type" : "*/*"
       }
@@ -1156,9 +1162,9 @@ public class DefaultApiExample {
         
         DefaultApi apiInstance = new DefaultApi();
         Object parent = ; // Object | 
-        Integer id = 56; // Integer | 
+        Object id = ; // Object | 
         try {
-            CategoryResponse result = apiInstance.categoriesIdDelete(parent, id);
+            CategoryDto result = apiInstance.categoriesIdDelete(parent, id);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#categoriesIdDelete");
@@ -1176,9 +1182,9 @@ public class DefaultApiExample {
     public static void main(String[] args) {
         DefaultApi apiInstance = new DefaultApi();
         Object parent = ; // Object | 
-        Integer id = 56; // Integer | 
+        Object id = ; // Object | 
         try {
-            CategoryResponse result = apiInstance.categoriesIdDelete(parent, id);
+            CategoryDto result = apiInstance.categoriesIdDelete(parent, id);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#categoriesIdDelete");
@@ -1193,13 +1199,13 @@ public class DefaultApiExample {
   </div> -->
                             <div class="tab-pane" id="examples-Default-categoriesIdDelete-0-objc">
                               <pre class="prettyprint"><code class="language-cpp">Object *parent = ; // 
-Integer *id = 56; // 
+Object *id = ; // 
 
 DefaultApi *apiInstance = [[DefaultApi alloc] init];
 
 [apiInstance categoriesIdDeleteWith:parent
     id:id
-              completionHandler: ^(CategoryResponse output, NSError* error) {
+              completionHandler: ^(CategoryDto output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -1215,7 +1221,7 @@ DefaultApi *apiInstance = [[DefaultApi alloc] init];
 
 var api = new BrComRedosulServerApi.DefaultApi()
 var parent = ; // {{Object}} 
-var id = 56; // {{Integer}} 
+var id = ; // {{Object}} 
 
 var callback = function(error, data, response) {
   if (error) {
@@ -1247,11 +1253,11 @@ namespace Example
 
             var apiInstance = new DefaultApi();
             var parent = new Object(); // Object | 
-            var id = 56;  // Integer | 
+            var id = new Object(); // Object | 
 
             try
             {
-                CategoryResponse result = apiInstance.categoriesIdDelete(parent, id);
+                CategoryDto result = apiInstance.categoriesIdDelete(parent, id);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -1270,7 +1276,7 @@ require_once(__DIR__ . '/vendor/autoload.php');
 
 $api_instance = new Swagger\Client\ApiDefaultApi();
 $parent = ; // Object | 
-$id = 56; // Integer | 
+$id = ; // Object | 
 
 try {
     $result = $api_instance->categoriesIdDelete($parent, $id);
@@ -1288,7 +1294,7 @@ use WWW::SwaggerClient::DefaultApi;
 
 my $api_instance = WWW::SwaggerClient::DefaultApi->new();
 my $parent = ; # Object | 
-my $id = 56; # Integer | 
+my $id = ; # Object | 
 
 eval { 
     my $result = $api_instance->categoriesIdDelete(parent => $parent, id => $id);
@@ -1309,7 +1315,7 @@ from pprint import pprint
 # create an instance of the API class
 api_instance = swagger_client.DefaultApi()
 parent =  # Object | 
-id = 56 # Integer | 
+id =  # Object | 
 
 try: 
     api_response = api_instance.categories_id_delete(parent, id)
@@ -1335,7 +1341,7 @@ except ApiException as e:
                                           <div class="json-schema-view">
                                               <div class="primitive">
                                                   <span class="type">
-                                                      Integer
+                                                      Object
                                                   </span>
                                   
                                               </div>
@@ -1398,7 +1404,7 @@ except ApiException as e:
   "content" : {
     "*/*" : {
       "schema" : {
-        "$ref" : "#/components/schemas/CategoryResponse"
+        "$ref" : "#/components/schemas/CategoryDto"
       }
     }
   }
@@ -1481,9 +1487,9 @@ public class DefaultApiExample {
         
         DefaultApi apiInstance = new DefaultApi();
         Object parent = ; // Object | 
-        Integer id = 56; // Integer | 
+        Object id = ; // Object | 
         try {
-            CategoryResponse result = apiInstance.categoriesIdGet(parent, id);
+            CategoryDto result = apiInstance.categoriesIdGet(parent, id);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#categoriesIdGet");
@@ -1501,9 +1507,9 @@ public class DefaultApiExample {
     public static void main(String[] args) {
         DefaultApi apiInstance = new DefaultApi();
         Object parent = ; // Object | 
-        Integer id = 56; // Integer | 
+        Object id = ; // Object | 
         try {
-            CategoryResponse result = apiInstance.categoriesIdGet(parent, id);
+            CategoryDto result = apiInstance.categoriesIdGet(parent, id);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#categoriesIdGet");
@@ -1518,13 +1524,13 @@ public class DefaultApiExample {
   </div> -->
                             <div class="tab-pane" id="examples-Default-categoriesIdGet-0-objc">
                               <pre class="prettyprint"><code class="language-cpp">Object *parent = ; // 
-Integer *id = 56; // 
+Object *id = ; // 
 
 DefaultApi *apiInstance = [[DefaultApi alloc] init];
 
 [apiInstance categoriesIdGetWith:parent
     id:id
-              completionHandler: ^(CategoryResponse output, NSError* error) {
+              completionHandler: ^(CategoryDto output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -1540,7 +1546,7 @@ DefaultApi *apiInstance = [[DefaultApi alloc] init];
 
 var api = new BrComRedosulServerApi.DefaultApi()
 var parent = ; // {{Object}} 
-var id = 56; // {{Integer}} 
+var id = ; // {{Object}} 
 
 var callback = function(error, data, response) {
   if (error) {
@@ -1572,11 +1578,11 @@ namespace Example
 
             var apiInstance = new DefaultApi();
             var parent = new Object(); // Object | 
-            var id = 56;  // Integer | 
+            var id = new Object(); // Object | 
 
             try
             {
-                CategoryResponse result = apiInstance.categoriesIdGet(parent, id);
+                CategoryDto result = apiInstance.categoriesIdGet(parent, id);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -1595,7 +1601,7 @@ require_once(__DIR__ . '/vendor/autoload.php');
 
 $api_instance = new Swagger\Client\ApiDefaultApi();
 $parent = ; // Object | 
-$id = 56; // Integer | 
+$id = ; // Object | 
 
 try {
     $result = $api_instance->categoriesIdGet($parent, $id);
@@ -1613,7 +1619,7 @@ use WWW::SwaggerClient::DefaultApi;
 
 my $api_instance = WWW::SwaggerClient::DefaultApi->new();
 my $parent = ; # Object | 
-my $id = 56; # Integer | 
+my $id = ; # Object | 
 
 eval { 
     my $result = $api_instance->categoriesIdGet(parent => $parent, id => $id);
@@ -1634,7 +1640,7 @@ from pprint import pprint
 # create an instance of the API class
 api_instance = swagger_client.DefaultApi()
 parent =  # Object | 
-id = 56 # Integer | 
+id =  # Object | 
 
 try: 
     api_response = api_instance.categories_id_get(parent, id)
@@ -1660,7 +1666,7 @@ except ApiException as e:
                                           <div class="json-schema-view">
                                               <div class="primitive">
                                                   <span class="type">
-                                                      Integer
+                                                      Object
                                                   </span>
                                   
                                               </div>
@@ -1723,7 +1729,7 @@ except ApiException as e:
   "content" : {
     "*/*" : {
       "schema" : {
-        "$ref" : "#/components/schemas/CategoryResponse"
+        "$ref" : "#/components/schemas/CategoryDto"
       }
     }
   }
@@ -1806,9 +1812,9 @@ public class DefaultApiExample {
         
         DefaultApi apiInstance = new DefaultApi();
         Object parent = ; // Object | 
-        Integer id = 56; // Integer | 
+        Object id = ; // Object | 
         try {
-            CategoryResponse result = apiInstance.categoriesIdPost(parent, id);
+            CategoryDto result = apiInstance.categoriesIdPost(parent, id);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#categoriesIdPost");
@@ -1826,9 +1832,9 @@ public class DefaultApiExample {
     public static void main(String[] args) {
         DefaultApi apiInstance = new DefaultApi();
         Object parent = ; // Object | 
-        Integer id = 56; // Integer | 
+        Object id = ; // Object | 
         try {
-            CategoryResponse result = apiInstance.categoriesIdPost(parent, id);
+            CategoryDto result = apiInstance.categoriesIdPost(parent, id);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#categoriesIdPost");
@@ -1843,13 +1849,13 @@ public class DefaultApiExample {
   </div> -->
                             <div class="tab-pane" id="examples-Default-categoriesIdPost-0-objc">
                               <pre class="prettyprint"><code class="language-cpp">Object *parent = ; // 
-Integer *id = 56; // 
+Object *id = ; // 
 
 DefaultApi *apiInstance = [[DefaultApi alloc] init];
 
 [apiInstance categoriesIdPostWith:parent
     id:id
-              completionHandler: ^(CategoryResponse output, NSError* error) {
+              completionHandler: ^(CategoryDto output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -1865,7 +1871,7 @@ DefaultApi *apiInstance = [[DefaultApi alloc] init];
 
 var api = new BrComRedosulServerApi.DefaultApi()
 var parent = ; // {{Object}} 
-var id = 56; // {{Integer}} 
+var id = ; // {{Object}} 
 
 var callback = function(error, data, response) {
   if (error) {
@@ -1897,11 +1903,11 @@ namespace Example
 
             var apiInstance = new DefaultApi();
             var parent = new Object(); // Object | 
-            var id = 56;  // Integer | 
+            var id = new Object(); // Object | 
 
             try
             {
-                CategoryResponse result = apiInstance.categoriesIdPost(parent, id);
+                CategoryDto result = apiInstance.categoriesIdPost(parent, id);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -1920,7 +1926,7 @@ require_once(__DIR__ . '/vendor/autoload.php');
 
 $api_instance = new Swagger\Client\ApiDefaultApi();
 $parent = ; // Object | 
-$id = 56; // Integer | 
+$id = ; // Object | 
 
 try {
     $result = $api_instance->categoriesIdPost($parent, $id);
@@ -1938,7 +1944,7 @@ use WWW::SwaggerClient::DefaultApi;
 
 my $api_instance = WWW::SwaggerClient::DefaultApi->new();
 my $parent = ; # Object | 
-my $id = 56; # Integer | 
+my $id = ; # Object | 
 
 eval { 
     my $result = $api_instance->categoriesIdPost(parent => $parent, id => $id);
@@ -1959,7 +1965,7 @@ from pprint import pprint
 # create an instance of the API class
 api_instance = swagger_client.DefaultApi()
 parent =  # Object | 
-id = 56 # Integer | 
+id =  # Object | 
 
 try: 
     api_response = api_instance.categories_id_post(parent, id)
@@ -1985,7 +1991,7 @@ except ApiException as e:
                                           <div class="json-schema-view">
                                               <div class="primitive">
                                                   <span class="type">
-                                                      Integer
+                                                      Object
                                                   </span>
                                   
                                               </div>
@@ -2048,7 +2054,7 @@ except ApiException as e:
   "content" : {
     "*/*" : {
       "schema" : {
-        "$ref" : "#/components/schemas/CategoryResponse"
+        "$ref" : "#/components/schemas/CategoryDto"
       }
     }
   }
@@ -2131,7 +2137,7 @@ public class DefaultApiExample {
         
         DefaultApi apiInstance = new DefaultApi();
         try {
-            CategoryResponse result = apiInstance.categoriesPost();
+            CategoryDto result = apiInstance.categoriesPost();
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#categoriesPost");
@@ -2149,7 +2155,7 @@ public class DefaultApiExample {
     public static void main(String[] args) {
         DefaultApi apiInstance = new DefaultApi();
         try {
-            CategoryResponse result = apiInstance.categoriesPost();
+            CategoryDto result = apiInstance.categoriesPost();
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#categoriesPost");
@@ -2167,7 +2173,7 @@ public class DefaultApiExample {
 DefaultApi *apiInstance = [[DefaultApi alloc] init];
 
 [apiInstance categoriesPostWithCompletionHandler: 
-              ^(CategoryResponse output, NSError* error) {
+              ^(CategoryDto output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -2214,7 +2220,7 @@ namespace Example
 
             try
             {
-                CategoryResponse result = apiInstance.categoriesPost();
+                CategoryDto result = apiInstance.categoriesPost();
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -2303,7 +2309,7 @@ except ApiException as e:
   "content" : {
     "*/*" : {
       "schema" : {
-        "$ref" : "#/components/schemas/CategoryResponse"
+        "$ref" : "#/components/schemas/CategoryDto"
       }
     }
   }
@@ -2387,7 +2393,7 @@ public class DefaultApiExample {
         DefaultApi apiInstance = new DefaultApi();
         Object categoryId = ; // Object | 
         try {
-            array[ProductResponse] result = apiInstance.productsGet(categoryId);
+            Iterable result = apiInstance.productsGet(categoryId);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsGet");
@@ -2406,7 +2412,7 @@ public class DefaultApiExample {
         DefaultApi apiInstance = new DefaultApi();
         Object categoryId = ; // Object | 
         try {
-            array[ProductResponse] result = apiInstance.productsGet(categoryId);
+            Iterable result = apiInstance.productsGet(categoryId);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsGet");
@@ -2425,7 +2431,7 @@ public class DefaultApiExample {
 DefaultApi *apiInstance = [[DefaultApi alloc] init];
 
 [apiInstance productsGetWith:categoryId
-              completionHandler: ^(array[ProductResponse] output, NSError* error) {
+              completionHandler: ^(Iterable output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -2476,7 +2482,7 @@ namespace Example
 
             try
             {
-                array[ProductResponse] result = apiInstance.productsGet(categoryId);
+                Iterable result = apiInstance.productsGet(categoryId);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -2591,11 +2597,7 @@ except ApiException as e:
   "content" : {
     "*/*" : {
       "schema" : {
-        "type" : "array",
-        "items" : {
-          "$ref" : "#/components/schemas/ProductResponse"
-        },
-        "x-content-type" : "*/*"
+        "$ref" : "#/components/schemas/Iterable"
       }
     }
   }
@@ -2677,11 +2679,11 @@ public class DefaultApiExample {
     public static void main(String[] args) {
         
         DefaultApi apiInstance = new DefaultApi();
-        Integer id = 56; // Integer | 
+        Object id = ; // Object | 
         Object categoryId = ; // Object | 
         Object parent = ; // Object | 
         try {
-            ProductResponse result = apiInstance.productsIdDelete(id, categoryId, parent);
+            Pair result = apiInstance.productsIdDelete(id, categoryId, parent);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsIdDelete");
@@ -2698,11 +2700,11 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         DefaultApi apiInstance = new DefaultApi();
-        Integer id = 56; // Integer | 
+        Object id = ; // Object | 
         Object categoryId = ; // Object | 
         Object parent = ; // Object | 
         try {
-            ProductResponse result = apiInstance.productsIdDelete(id, categoryId, parent);
+            Pair result = apiInstance.productsIdDelete(id, categoryId, parent);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsIdDelete");
@@ -2716,7 +2718,7 @@ public class DefaultApiExample {
   <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
   </div> -->
                             <div class="tab-pane" id="examples-Default-productsIdDelete-0-objc">
-                              <pre class="prettyprint"><code class="language-cpp">Integer *id = 56; // 
+                              <pre class="prettyprint"><code class="language-cpp">Object *id = ; // 
 Object *categoryId = ; //  (optional)
 Object *parent = ; //  (optional)
 
@@ -2725,7 +2727,7 @@ DefaultApi *apiInstance = [[DefaultApi alloc] init];
 [apiInstance productsIdDeleteWith:id
     categoryId:categoryId
     parent:parent
-              completionHandler: ^(ProductResponse output, NSError* error) {
+              completionHandler: ^(Pair output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -2740,7 +2742,7 @@ DefaultApi *apiInstance = [[DefaultApi alloc] init];
                               <pre class="prettyprint"><code class="language-js">var BrComRedosulServerApi = require('br_com_redosul_server_api');
 
 var api = new BrComRedosulServerApi.DefaultApi()
-var id = 56; // {{Integer}} 
+var id = ; // {{Object}} 
 var opts = { 
   'categoryId': , // {{Object}} 
   'parent':  // {{Object}} 
@@ -2774,13 +2776,13 @@ namespace Example
         {
 
             var apiInstance = new DefaultApi();
-            var id = 56;  // Integer | 
+            var id = new Object(); // Object | 
             var categoryId = new Object(); // Object |  (optional) 
             var parent = new Object(); // Object |  (optional) 
 
             try
             {
-                ProductResponse result = apiInstance.productsIdDelete(id, categoryId, parent);
+                Pair result = apiInstance.productsIdDelete(id, categoryId, parent);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -2798,7 +2800,7 @@ namespace Example
 require_once(__DIR__ . '/vendor/autoload.php');
 
 $api_instance = new Swagger\Client\ApiDefaultApi();
-$id = 56; // Integer | 
+$id = ; // Object | 
 $categoryId = ; // Object | 
 $parent = ; // Object | 
 
@@ -2817,7 +2819,7 @@ use WWW::SwaggerClient::Configuration;
 use WWW::SwaggerClient::DefaultApi;
 
 my $api_instance = WWW::SwaggerClient::DefaultApi->new();
-my $id = 56; # Integer | 
+my $id = ; # Object | 
 my $categoryId = ; # Object | 
 my $parent = ; # Object | 
 
@@ -2839,7 +2841,7 @@ from pprint import pprint
 
 # create an instance of the API class
 api_instance = swagger_client.DefaultApi()
-id = 56 # Integer | 
+id =  # Object | 
 categoryId =  # Object |  (optional)
 parent =  # Object |  (optional)
 
@@ -2867,7 +2869,7 @@ except ApiException as e:
                                           <div class="json-schema-view">
                                               <div class="primitive">
                                                   <span class="type">
-                                                      Integer
+                                                      Object
                                                   </span>
                                   
                                               </div>
@@ -2943,7 +2945,7 @@ except ApiException as e:
   "content" : {
     "*/*" : {
       "schema" : {
-        "$ref" : "#/components/schemas/ProductResponse"
+        "$ref" : "#/components/schemas/Pair"
       }
     }
   }
@@ -3025,11 +3027,11 @@ public class DefaultApiExample {
     public static void main(String[] args) {
         
         DefaultApi apiInstance = new DefaultApi();
-        Integer id = 56; // Integer | 
+        Object id = ; // Object | 
         Object categoryId = ; // Object | 
         Object parent = ; // Object | 
         try {
-            ProductResponse result = apiInstance.productsIdGet(id, categoryId, parent);
+            Pair result = apiInstance.productsIdGet(id, categoryId, parent);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsIdGet");
@@ -3046,11 +3048,11 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         DefaultApi apiInstance = new DefaultApi();
-        Integer id = 56; // Integer | 
+        Object id = ; // Object | 
         Object categoryId = ; // Object | 
         Object parent = ; // Object | 
         try {
-            ProductResponse result = apiInstance.productsIdGet(id, categoryId, parent);
+            Pair result = apiInstance.productsIdGet(id, categoryId, parent);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsIdGet");
@@ -3064,7 +3066,7 @@ public class DefaultApiExample {
   <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
   </div> -->
                             <div class="tab-pane" id="examples-Default-productsIdGet-0-objc">
-                              <pre class="prettyprint"><code class="language-cpp">Integer *id = 56; // 
+                              <pre class="prettyprint"><code class="language-cpp">Object *id = ; // 
 Object *categoryId = ; //  (optional)
 Object *parent = ; //  (optional)
 
@@ -3073,7 +3075,7 @@ DefaultApi *apiInstance = [[DefaultApi alloc] init];
 [apiInstance productsIdGetWith:id
     categoryId:categoryId
     parent:parent
-              completionHandler: ^(ProductResponse output, NSError* error) {
+              completionHandler: ^(Pair output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -3088,7 +3090,7 @@ DefaultApi *apiInstance = [[DefaultApi alloc] init];
                               <pre class="prettyprint"><code class="language-js">var BrComRedosulServerApi = require('br_com_redosul_server_api');
 
 var api = new BrComRedosulServerApi.DefaultApi()
-var id = 56; // {{Integer}} 
+var id = ; // {{Object}} 
 var opts = { 
   'categoryId': , // {{Object}} 
   'parent':  // {{Object}} 
@@ -3122,13 +3124,13 @@ namespace Example
         {
 
             var apiInstance = new DefaultApi();
-            var id = 56;  // Integer | 
+            var id = new Object(); // Object | 
             var categoryId = new Object(); // Object |  (optional) 
             var parent = new Object(); // Object |  (optional) 
 
             try
             {
-                ProductResponse result = apiInstance.productsIdGet(id, categoryId, parent);
+                Pair result = apiInstance.productsIdGet(id, categoryId, parent);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -3146,7 +3148,7 @@ namespace Example
 require_once(__DIR__ . '/vendor/autoload.php');
 
 $api_instance = new Swagger\Client\ApiDefaultApi();
-$id = 56; // Integer | 
+$id = ; // Object | 
 $categoryId = ; // Object | 
 $parent = ; // Object | 
 
@@ -3165,7 +3167,7 @@ use WWW::SwaggerClient::Configuration;
 use WWW::SwaggerClient::DefaultApi;
 
 my $api_instance = WWW::SwaggerClient::DefaultApi->new();
-my $id = 56; # Integer | 
+my $id = ; # Object | 
 my $categoryId = ; # Object | 
 my $parent = ; # Object | 
 
@@ -3187,7 +3189,7 @@ from pprint import pprint
 
 # create an instance of the API class
 api_instance = swagger_client.DefaultApi()
-id = 56 # Integer | 
+id =  # Object | 
 categoryId =  # Object |  (optional)
 parent =  # Object |  (optional)
 
@@ -3215,7 +3217,7 @@ except ApiException as e:
                                           <div class="json-schema-view">
                                               <div class="primitive">
                                                   <span class="type">
-                                                      Integer
+                                                      Object
                                                   </span>
                                   
                                               </div>
@@ -3291,7 +3293,7 @@ except ApiException as e:
   "content" : {
     "*/*" : {
       "schema" : {
-        "$ref" : "#/components/schemas/ProductResponse"
+        "$ref" : "#/components/schemas/Pair"
       }
     }
   }
@@ -3373,11 +3375,11 @@ public class DefaultApiExample {
     public static void main(String[] args) {
         
         DefaultApi apiInstance = new DefaultApi();
-        Integer id = 56; // Integer | 
+        Object id = ; // Object | 
         Object categoryId = ; // Object | 
         Object parent = ; // Object | 
         try {
-            ProductResponse result = apiInstance.productsIdPost(id, categoryId, parent);
+            Product result = apiInstance.productsIdPost(id, categoryId, parent);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsIdPost");
@@ -3394,11 +3396,11 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         DefaultApi apiInstance = new DefaultApi();
-        Integer id = 56; // Integer | 
+        Object id = ; // Object | 
         Object categoryId = ; // Object | 
         Object parent = ; // Object | 
         try {
-            ProductResponse result = apiInstance.productsIdPost(id, categoryId, parent);
+            Product result = apiInstance.productsIdPost(id, categoryId, parent);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsIdPost");
@@ -3412,7 +3414,7 @@ public class DefaultApiExample {
   <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
   </div> -->
                             <div class="tab-pane" id="examples-Default-productsIdPost-0-objc">
-                              <pre class="prettyprint"><code class="language-cpp">Integer *id = 56; // 
+                              <pre class="prettyprint"><code class="language-cpp">Object *id = ; // 
 Object *categoryId = ; //  (optional)
 Object *parent = ; //  (optional)
 
@@ -3421,7 +3423,7 @@ DefaultApi *apiInstance = [[DefaultApi alloc] init];
 [apiInstance productsIdPostWith:id
     categoryId:categoryId
     parent:parent
-              completionHandler: ^(ProductResponse output, NSError* error) {
+              completionHandler: ^(Product output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -3436,7 +3438,7 @@ DefaultApi *apiInstance = [[DefaultApi alloc] init];
                               <pre class="prettyprint"><code class="language-js">var BrComRedosulServerApi = require('br_com_redosul_server_api');
 
 var api = new BrComRedosulServerApi.DefaultApi()
-var id = 56; // {{Integer}} 
+var id = ; // {{Object}} 
 var opts = { 
   'categoryId': , // {{Object}} 
   'parent':  // {{Object}} 
@@ -3470,13 +3472,13 @@ namespace Example
         {
 
             var apiInstance = new DefaultApi();
-            var id = 56;  // Integer | 
+            var id = new Object(); // Object | 
             var categoryId = new Object(); // Object |  (optional) 
             var parent = new Object(); // Object |  (optional) 
 
             try
             {
-                ProductResponse result = apiInstance.productsIdPost(id, categoryId, parent);
+                Product result = apiInstance.productsIdPost(id, categoryId, parent);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -3494,7 +3496,7 @@ namespace Example
 require_once(__DIR__ . '/vendor/autoload.php');
 
 $api_instance = new Swagger\Client\ApiDefaultApi();
-$id = 56; // Integer | 
+$id = ; // Object | 
 $categoryId = ; // Object | 
 $parent = ; // Object | 
 
@@ -3513,7 +3515,7 @@ use WWW::SwaggerClient::Configuration;
 use WWW::SwaggerClient::DefaultApi;
 
 my $api_instance = WWW::SwaggerClient::DefaultApi->new();
-my $id = 56; # Integer | 
+my $id = ; # Object | 
 my $categoryId = ; # Object | 
 my $parent = ; # Object | 
 
@@ -3535,7 +3537,7 @@ from pprint import pprint
 
 # create an instance of the API class
 api_instance = swagger_client.DefaultApi()
-id = 56 # Integer | 
+id =  # Object | 
 categoryId =  # Object |  (optional)
 parent =  # Object |  (optional)
 
@@ -3563,7 +3565,7 @@ except ApiException as e:
                                           <div class="json-schema-view">
                                               <div class="primitive">
                                                   <span class="type">
-                                                      Integer
+                                                      Object
                                                   </span>
                                   
                                               </div>
@@ -3639,7 +3641,7 @@ except ApiException as e:
   "content" : {
     "*/*" : {
       "schema" : {
-        "$ref" : "#/components/schemas/ProductResponse"
+        "$ref" : "#/components/schemas/Product"
       }
     }
   }
@@ -3723,7 +3725,7 @@ public class DefaultApiExample {
         DefaultApi apiInstance = new DefaultApi();
         Object categoryId = ; // Object | 
         try {
-            ProductResponse result = apiInstance.productsPost(categoryId);
+            Pair result = apiInstance.productsPost(categoryId);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsPost");
@@ -3742,7 +3744,7 @@ public class DefaultApiExample {
         DefaultApi apiInstance = new DefaultApi();
         Object categoryId = ; // Object | 
         try {
-            ProductResponse result = apiInstance.productsPost(categoryId);
+            Pair result = apiInstance.productsPost(categoryId);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DefaultApi#productsPost");
@@ -3761,7 +3763,7 @@ public class DefaultApiExample {
 DefaultApi *apiInstance = [[DefaultApi alloc] init];
 
 [apiInstance productsPostWith:categoryId
-              completionHandler: ^(ProductResponse output, NSError* error) {
+              completionHandler: ^(Pair output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -3812,7 +3814,7 @@ namespace Example
 
             try
             {
-                ProductResponse result = apiInstance.productsPost(categoryId);
+                Pair result = apiInstance.productsPost(categoryId);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -3927,7 +3929,7 @@ except ApiException as e:
   "content" : {
     "*/*" : {
       "schema" : {
-        "$ref" : "#/components/schemas/ProductResponse"
+        "$ref" : "#/components/schemas/Pair"
       }
     }
   }

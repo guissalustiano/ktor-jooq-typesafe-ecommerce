@@ -1,7 +1,6 @@
 
 
 # TODO
- - [ ] Not set response returns 404, so is possible remove return@get using ?.let` (rails oriented programming dream)
- - [ ] Talvez services retornem response e não o Dto
+ - [ ] Use manual DTO converter from records
  - [ ] Implement soft delete
  - [ ] Product Images

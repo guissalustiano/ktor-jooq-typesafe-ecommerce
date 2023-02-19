@@ -6,15 +6,16 @@ POST http://localhost:8080/categories
 Content-Type: application/json
 
 {
-  "name": "Category children"
+  "parentId": "32b6498a-4ba8-4789-b41f-9027a1e814c5",
+  "name": "Category 3"
 }
 
 ###
-GET http://localhost:8080/categories/2
+GET http://localhost:8080/categories/6ea5f793-e80c-4339-878c-ab0031ccedec
 Accept: application/json
 
 ###
-POST http://localhost:8080/categories/1
+POST http://localhost:8080/categories/6ea5f793-e80c-4339-878c-ab0031ccedec
 Content-Type: application/json
 
 {
@@ -22,7 +23,7 @@ Content-Type: application/json
 }
 
 ###
-DELETE http://localhost:8080/categories/1
+DELETE http://localhost:8080/categories/6ea5f793-e80c-4339-878c-ab0031ccedec
 Content-Type: application/json
 
 ###

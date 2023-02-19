@@ -8,7 +8,6 @@ import io.ktor.server.request.receive
 import io.ktor.server.resources.*
 import io.ktor.server.response.respond
 import io.ktor.server.routing.routing
-import org.jooq.DSLContext
 import org.jooq.impl.DSL.*
 import org.jooq.impl.SQLDataType.*
 import org.jooq.*
@@ -23,50 +22,36 @@ class CategoryResource {
 fun Application.categoryRoutes(service: CategoryService) {
     routing {
         get<CategoryResource> {_ ->
-            val records = service.findAll()
-            call.respond(records.toTreeResponse())
+            service.findAll().let{
+                call.respond(it)
+            }
         }
 
         get<CategoryResource.Id> {resource ->
-            val record = service.findById(resource.id)
-
-            if (record == null) {
-                call.response.status(HttpStatusCode.NotFound)
-                return@get
+            service.findById(resource.id)?.let{
+                call.respond(it)
             }
-
-            call.respond(record.toResponse())
         }
 
         post<CategoryResource> {_ ->
-            val payload = call.receive<CategorySetPayload>()
-            val record = service.create(payload)
-
-            call.response.status(HttpStatusCode.Created)
-            call.respond(record.toResponse())
+            val payload = call.receive<CategoryDto>()
+            service.create(payload).let{
+                call.response.status(HttpStatusCode.Created)
+                call.respond(it)
+            }
         }
 
         post<CategoryResource.Id> {resource ->
-            val payload = call.receive<CategorySetPayload>()
-            val record = service.updateById(resource.id, payload)
-
-            if (record == null) {
-                call.response.status(HttpStatusCode.NotFound)
-                return@post
+            val payload = call.receive<CategoryDto>()
+            service.updateById(resource.id, payload)?.let {
+                call.respond(it)
             }
-
-            call.respond(record.toResponse())
         }
 
         delete<CategoryResource.Id> {resource ->
-            val record = service.deleteById(resource.id)
-
-            if (record == null) {
-                call.response.status(HttpStatusCode.NotFound)
-                return@delete
+            service.deleteById(resource.id)?.let {
+                call.respond(it)
             }
-
-            call.respond(record.toResponse())
         }
     }
 }

@@ -1,6 +1,16 @@
 package br.com.redosul.plugins
 
+import kotlinx.datetime.Instant
+import kotlinx.datetime.toKotlinInstant
 import kotlinx.serialization.Serializable
+import java.time.OffsetDateTime
+
+
+interface Id: Comparable<UUID> {
+    val value: UUID
+
+    override fun compareTo(other: UUID): Int = value.compareTo(other)
+}
 
 @JvmInline
 @Serializable
@@ -14,3 +24,6 @@ value class Slug(val value: String) {
 }
 
 fun String.toSlug() = Slug.from(this)
+
+
+fun OffsetDateTime.toKotlinInstant(): Instant = toInstant().toKotlinInstant()

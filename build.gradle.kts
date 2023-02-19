@@ -13,6 +13,7 @@ val kotest_version : String by project
 val jooq_version : String by project
 val kotlin_couroutines_version : String by project
 val r2dbc_pool_version: String by project
+val kotlinx_datetime_version: String by project
 
 plugins {
     kotlin("jvm") version "1.8.10"
@@ -51,6 +52,7 @@ dependencies {
     implementation("io.ktor:ktor-server-openapi:$ktor_version")
     implementation("io.ktor:ktor-server-swagger:$ktor_version")
     implementation("io.ktor:ktor-server-cors:$ktor_version")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:$kotlinx_datetime_version")
     testImplementation("io.ktor:ktor-server-test-host-jvm:2.2.3")
     jooqGenerator("org.postgresql:postgresql:$postgres_version")
     implementation("org.postgresql:postgresql:$postgres_version")
