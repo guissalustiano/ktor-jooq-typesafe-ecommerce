@@ -6,8 +6,7 @@ POST http://localhost:8080/categories
 Content-Type: application/json
 
 {
-  "parentId": "32b6498a-4ba8-4789-b41f-9027a1e814c5",
-  "name": "Category 3"
+  "name": "Category"
 }
 
 ###

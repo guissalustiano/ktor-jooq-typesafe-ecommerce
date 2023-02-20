@@ -6,14 +6,19 @@ POST http://localhost:8080/products
 Content-Type: application/json
 
 {
-  "categoryId": "4dedba12-e47b-4e54-bbd9-95790f3beb3b",
-  "name": "Product 9",
+  "categoryId": "a452f7f9-6fa8-4c17-b012-52102c7bb2ac",
+  "name": "Product",
   "variants": [
     {
       "type": "RGB",
       "red": 255,
       "green": 0,
-      "blue": 0
+      "blue": 0,
+      "images": [
+        {
+          "url": "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
+        }
+      ]
     },
     {
       "type": "RGB",
@@ -25,13 +30,29 @@ Content-Type: application/json
       "type": "RGB",
       "red": 0,
       "green": 0,
-      "blue": 255
+      "blue": 255,
+      "images": [
+        {
+          "url": "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
+        },
+        {
+          "url": "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
+        }
+      ]
+    }
+  ],
+  "images": [
+    {
+      "url": "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
+    },
+    {
+      "url": "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
     }
   ]
 }
 
 ###
-GET http://localhost:8080/products/1fb142f6-74e1-47fd-a4ef-afbf6d55ce12
+GET http://localhost:8080/products/cd82362b-40ea-4c9d-9fe6-f448b2a6473f
 Accept: application/json
 
 ###

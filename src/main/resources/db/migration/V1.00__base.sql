@@ -42,4 +42,16 @@ create table product_variant(
 
     -- Size (for T-shirts)
     size clothe_size
-)
+);
+
+create table product_image(
+    id uuid primary key not null default gen_random_uuid(),
+    created_at timestamp with time zone not null default now(),
+    updated_at timestamp with time zone not null default now(),
+
+    product_id uuid references product(id) not null,
+    product_variant_id uuid references product_variant(id),
+
+    url text not null,
+    alt text not null default ''
+);

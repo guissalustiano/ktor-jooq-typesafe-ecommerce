@@ -4,6 +4,7 @@ import br.com.redosul.category.CategoryId
 import br.com.redosul.generated.enums.ClotheSize
 import br.com.redosul.plugins.Id
 import br.com.redosul.plugins.Slug
+import br.com.redosul.plugins.URL
 import br.com.redosul.plugins.UUID
 import br.com.redosul.plugins.toSlug
 import kotlinx.serialization.SerialName
@@ -18,6 +19,11 @@ value class ProductId(override val value: UUID = UUID.randomUUID()): Id
 @Serializable
 value class ProductVariantId(override val value: UUID = UUID.randomUUID()): Id
 
+
+@JvmInline
+@Serializable
+value class ProductImageId(override val value: UUID = UUID.randomUUID()): Id
+
 @Serializable
 data class ProductDto(
     val id: ProductId = ProductId(),
@@ -25,7 +31,8 @@ data class ProductDto(
     val name: String,
     val slug: Slug = name.toSlug(),
     val description: String = "",
-    val variants: List<ProductVariantDto>? = null
+    val variants: List<ProductVariantDto>? = null,
+    val images: List<ProductImageDto> = emptyList(),
 ) {
     init {
         variants?.isSameType()?.let { require(it) { "Variants must be the same type" } }
@@ -35,6 +42,8 @@ data class ProductDto(
 @Serializable
 sealed class ProductVariantDto {
     abstract val id: ProductVariantId
+    abstract val images: List<ProductImageDto>
+
     @Serializable
     sealed class Color: ProductVariantDto() {
         abstract val name: String
@@ -46,6 +55,7 @@ sealed class ProductVariantDto {
                 val red: UByte,
                 val green: UByte,
                 val blue: UByte,
+                override val images: List<ProductImageDto> = emptyList(),
             ): Color()
 
             @Serializable
@@ -54,6 +64,7 @@ sealed class ProductVariantDto {
                 override val id: ProductVariantId = ProductVariantId(),
                 override val name: String = "",
                 val url: String,
+                override val images: List<ProductImageDto> = emptyList(),
             ): Color()
         }
 
@@ -62,6 +73,7 @@ sealed class ProductVariantDto {
     data class Size(
         override val id: ProductVariantId = ProductVariantId(),
         val value: ClotheSize,
+        override val images: List<ProductImageDto> = emptyList(),
     ): ProductVariantDto()
 
     @Serializable
@@ -70,8 +82,16 @@ sealed class ProductVariantDto {
         override val id: ProductVariantId = ProductVariantId(),
         val size: Size,
         val color: Color,
+        override val images: List<ProductImageDto> = emptyList(),
     ): ProductVariantDto()
 }
+
+@Serializable
+data class ProductImageDto(
+    val id: ProductImageId = ProductImageId(),
+    val url: URL,
+    val alt: String = "",
+)
 
 private fun List<ProductVariantDto>.isSameType(): Boolean {
     val first = firstOrNull() ?: return true

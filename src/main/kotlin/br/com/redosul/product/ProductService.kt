@@ -1,18 +1,19 @@
 package br.com.redosul.product
 
 import br.com.redosul.category.CategoryId
-import br.com.redosul.generated.tables.ProductVariant
+import br.com.redosul.generated.tables.records.ProductImageRecord
 import br.com.redosul.generated.tables.records.ProductRecord
 import br.com.redosul.generated.tables.records.ProductVariantRecord
 import br.com.redosul.generated.tables.references.CATEGORY
 import br.com.redosul.generated.tables.references.PRODUCT
+import br.com.redosul.generated.tables.references.PRODUCT_IMAGE
 import br.com.redosul.generated.tables.references.PRODUCT_VARIANT
 import br.com.redosul.plugins.Slug
+import br.com.redosul.plugins.URL
 import br.com.redosul.plugins.await
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
-import org.jooq.Records
 import org.jooq.Record
 import org.jooq.impl.DSL.*
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -40,14 +41,20 @@ class ProductService(private val dsl: DSLContext) {
             )
 
         return dsl.withRecursive(cte)
-                    .selectDistinct(
+                    .select(
                         PRODUCT.asterisk(),
                         multiset(
                             select(PRODUCT_VARIANT.asterisk())
                                 .from(PRODUCT_VARIANT)
                                 .where(PRODUCT_VARIANT.PRODUCT_ID.eq(PRODUCT.ID))
-                        ).`as`("variants")
+                        ).`as`("variants"),
+                        multiset(
+                            select(PRODUCT_IMAGE.asterisk())
+                                .from(PRODUCT_IMAGE)
+                                .where(PRODUCT_IMAGE.PRODUCT_ID.eq(PRODUCT.ID))
+                        ).`as`("images"),
                     )
+                    .distinctOn(PRODUCT.ID)
                     .from(cte)
                     .join(PRODUCT)
                     .on(PRODUCT.CATEGORY_ID.eq(field(name(cteName, CATEGORY.ID.name), CATEGORY.ID.dataType)))
@@ -65,7 +72,12 @@ class ProductService(private val dsl: DSLContext) {
                     select(PRODUCT_VARIANT.asterisk())
                         .from(PRODUCT_VARIANT)
                         .where(PRODUCT_VARIANT.PRODUCT_ID.eq(PRODUCT.ID))
-                ).`as`("variants")
+                ).`as`("variants"),
+                multiset(
+                    select(PRODUCT_IMAGE.asterisk())
+                        .from(PRODUCT_IMAGE)
+                        .where(PRODUCT_IMAGE.PRODUCT_ID.eq(PRODUCT.ID))
+                ).`as`("images"),
             )
                 .from(PRODUCT)
                 .where(PRODUCT.ID.eq(id.value))
@@ -75,7 +87,11 @@ class ProductService(private val dsl: DSLContext) {
 
     suspend fun create(payload: ProductDto): ProductDto {
         val productRecord = payload.toRecord()
-        val variantsRecord = payload.variants?.map { it.toRecord() }
+        val variantsRecord = payload.variants?.map { it.toRecord() } ?: emptyList()
+        val imagesRecord = payload.images.map{ it.toRecord().apply { productVariantId = null } } +
+            (payload.variants?.flatMap{ variant ->
+                variant.images.map{ it.toRecord().apply { productVariantId = variant.id.value } }
+            } ?: emptyList())
 
         return dsl.transactionCoroutine {config ->
             val dsl = config.dsl()
@@ -87,17 +103,27 @@ class ProductService(private val dsl: DSLContext) {
                 .returningResult(PRODUCT.asterisk())
                 .awaitFirst().into(PRODUCT)
 
-            val variants = variantsRecord?.map {
+            val variants = variantsRecord.map {
                 dsl.insertInto(PRODUCT_VARIANT)
                     .set(it)
-                    .set(PRODUCT_VARIANT.PRODUCT_ID, product.into(PRODUCT).id)
+                    .set(PRODUCT_VARIANT.PRODUCT_ID, product.id)
                     .set(PRODUCT_VARIANT.UPDATED_AT, OffsetDateTime.now())
                     .set(PRODUCT_VARIANT.CREATED_AT, OffsetDateTime.now())
                     .returningResult(PRODUCT_VARIANT.asterisk())
                     .awaitFirst().into(PRODUCT_VARIANT)
             }
 
-            productToDto(product, variants)
+            val images = imagesRecord.map {
+                    dsl.insertInto(PRODUCT_IMAGE)
+                        .set(it)
+                        .set(PRODUCT_IMAGE.PRODUCT_ID, product.id)
+                        .set(PRODUCT_IMAGE.UPDATED_AT, OffsetDateTime.now())
+                        .set(PRODUCT_IMAGE.CREATED_AT, OffsetDateTime.now())
+                        .returningResult(PRODUCT_IMAGE.asterisk())
+                        .awaitFirst().into(PRODUCT_IMAGE)
+            }
+
+            productToDto(product, variants, images)
         }
     }
 
@@ -151,7 +177,9 @@ class ProductService(private val dsl: DSLContext) {
                     .awaitFirst().into(PRODUCT_VARIANT)
             }
 
-            product?.let{ productToDto(it, newVariants + updatedVariants) }
+            // TODO: update images
+
+            product?.let{ productToDto(it, newVariants + updatedVariants, emptyList()) }
 
         }
     }
@@ -160,6 +188,11 @@ class ProductService(private val dsl: DSLContext) {
 
         return dsl.transactionCoroutine {config ->
             val dsl = config.dsl()
+
+            val images = dsl.deleteFrom(PRODUCT_IMAGE)
+                .where(PRODUCT_IMAGE.PRODUCT_ID.eq(id.value))
+                .returningResult(PRODUCT_IMAGE.asterisk())
+                .await().map{it.into(PRODUCT_IMAGE)}
 
             val variants = dsl.deleteFrom(PRODUCT_VARIANT)
                     .where(PRODUCT_VARIANT.PRODUCT_ID.eq(id.value))
@@ -175,7 +208,7 @@ class ProductService(private val dsl: DSLContext) {
 
             product ?: return@transactionCoroutine null
 
-            productToDto(product, variants)
+            productToDto(product, variants, images)
         }
     }
 }
@@ -186,6 +219,12 @@ private fun ProductDto.toRecord() = ProductRecord().also {
     it.slug = slug.value
     it.description = description
 }
+
+private fun ProductImageDto.toRecord() = ProductImageRecord().also {
+    it.id = id.value
+    it.url = url.value
+}
+
 
 private fun ProductVariantDto.toRecord() = ProductVariantRecord().also {
     it.id = id.value
@@ -222,14 +261,27 @@ private fun ProductVariantDto.toRecord() = ProductVariantRecord().also {
     }
 }
 
-private fun productToDto(product: ProductRecord, variants: List<ProductVariantRecord>?): ProductDto {
+private fun productToDto(
+    product: ProductRecord,
+    variants: List<ProductVariantRecord>?,
+    images: List<ProductImageRecord>,
+): ProductDto {
+    val (productImages, variantsImages) = images.partition{ it.productVariantId == null}
     return ProductDto(
         ProductId(product.id!!),
         CategoryId(product.categoryId!!),
         product.name!!,
         Slug(product.slug!!),
         product.description!!,
-        variants?.map { it.toDto() }
+        variants?.map { it.toDto(variantsImages.filter { img -> img.productVariantId == it.id }) },
+        productImages.map { it.toDto() },
+    )
+}
+
+private fun ProductImageRecord.toDto(): ProductImageDto {
+    return ProductImageDto(
+        ProductImageId(id!!),
+        URL(url!!)
     )
 }
 
@@ -237,18 +289,20 @@ private fun productToDto(product: ProductRecord, variants: List<ProductVariantRe
 private fun Record.toProductWithVariantDto(): ProductDto {
     val product = this.into(PRODUCT)
     val variants = this.get("variants", List::class.java)?.map { (it as Record).into(PRODUCT_VARIANT) }
+    val images = this.get("images", List::class.java)?.map { (it as Record).into(PRODUCT_IMAGE) } ?: emptyList()
 
-    return productToDto(product, variants)
+    return productToDto(product, variants, images)
 }
 
-private fun ProductVariantRecord.toDto(): ProductVariantDto {
+private fun ProductVariantRecord.toDto(images: List<ProductImageRecord>): ProductVariantDto {
     requireNotNull(id)
     fun parseOrNullSize(): ProductVariantDto.Size? {
         size ?: return null
 
         return ProductVariantDto.Size(
             ProductVariantId(id!!),
-            size!!
+            size!!,
+            images.map { it.toDto() }
         )
     }
 
@@ -259,7 +313,8 @@ private fun ProductVariantRecord.toDto(): ProductVariantDto {
         return ProductVariantDto.Color.Image(
             ProductVariantId(id!!),
             colorName!!,
-            colorUrl!!
+            colorUrl!!,
+                    images.map { it.toDto() }
         )
     }
 
@@ -275,6 +330,7 @@ private fun ProductVariantRecord.toDto(): ProductVariantDto {
             colorRed!!.toUByte(),
             colorGreen!!.toUByte(),
             colorBlue!!.toUByte(),
+            images.map { it.toDto() }
         )
     }
 
@@ -289,7 +345,8 @@ private fun ProductVariantRecord.toDto(): ProductVariantDto {
         color != null && size != null -> ProductVariantDto.ColorSize(
             ProductVariantId(id!!),
             size,
-            color
+            color,
+            images.map { it.toDto() }
         )
         color != null -> color
         size != null -> size

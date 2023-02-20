@@ -27,3 +27,11 @@ fun String.toSlug() = Slug.from(this)
 
 
 fun OffsetDateTime.toKotlinInstant(): Instant = toInstant().toKotlinInstant()
+
+@JvmInline
+@Serializable
+value class URL(val value: String) {
+    init {
+        require(value.matches(Regex("https?://.+"))) { "URL must be http or https" }
+    }
+}
