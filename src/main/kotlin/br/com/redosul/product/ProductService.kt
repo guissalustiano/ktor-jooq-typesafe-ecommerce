@@ -97,7 +97,7 @@ class ProductService(private val dsl: DSLContext) {
                     .awaitFirst().into(PRODUCT_VARIANT)
             }
 
-            Pair(product, variants).toDto()
+            productToDto(product, variants)
         }
     }
 
@@ -151,7 +151,7 @@ class ProductService(private val dsl: DSLContext) {
                     .awaitFirst().into(PRODUCT_VARIANT)
             }
 
-            product?.let{ Pair(it, newVariants + updatedVariants).toDto() }
+            product?.let{ productToDto(it, newVariants + updatedVariants) }
 
         }
     }
@@ -175,7 +175,7 @@ class ProductService(private val dsl: DSLContext) {
 
             product ?: return@transactionCoroutine null
 
-            Pair(product, variants).toDto()
+            productToDto(product, variants)
         }
     }
 }
@@ -222,8 +222,7 @@ private fun ProductVariantDto.toRecord() = ProductVariantRecord().also {
     }
 }
 
-private fun Pair<ProductRecord, List<ProductVariantRecord>?>.toDto(): ProductDto {
-    val (product, variants) = this
+private fun productToDto(product: ProductRecord, variants: List<ProductVariantRecord>?): ProductDto {
     return ProductDto(
         ProductId(product.id!!),
         CategoryId(product.categoryId!!),
@@ -239,7 +238,7 @@ private fun Record.toProductWithVariantDto(): ProductDto {
     val product = this.into(PRODUCT)
     val variants = this.get("variants", List::class.java)?.map { (it as Record).into(PRODUCT_VARIANT) }
 
-    return Pair(product, variants).toDto()
+    return productToDto(product, variants)
 }
 
 private fun ProductVariantRecord.toDto(): ProductVariantDto {
