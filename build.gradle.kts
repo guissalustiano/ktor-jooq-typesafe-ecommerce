@@ -52,6 +52,7 @@ dependencies {
     implementation("io.ktor:ktor-server-openapi:$ktor_version")
     implementation("io.ktor:ktor-server-swagger:$ktor_version")
     implementation("io.ktor:ktor-server-cors:$ktor_version")
+    implementation("io.ktor:ktor-server-status-pages:$ktor_version")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:$kotlinx_datetime_version")
     testImplementation("io.ktor:ktor-server-test-host-jvm:2.2.3")
     jooqGenerator("org.postgresql:postgresql:$postgres_version")

@@ -17,6 +17,7 @@ fun main() {
 fun Application.module() {
     configureSerialization()
     val dsl = configureDatabases()
+    configureStatusResponse()
     configureRouting()
     configureCORS()
     configureOpenAPI()
