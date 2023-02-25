@@ -55,3 +55,24 @@ create table product_image(
     url text not null,
     alt text not null default ''
 );
+
+create table "user"
+(
+    id uuid primary key not null default gen_random_uuid(),
+    created_at timestamp with time zone not null default now(),
+    updated_at timestamp with time zone not null default now(),
+
+    email text not null unique
+);
+
+create table user_proprieties(
+    id uuid primary key not null default gen_random_uuid(),
+    created_at timestamp with time zone not null default now(),
+    updated_at timestamp with time zone not null default now(),
+
+    user_id uuid references "user"(id) not null,
+
+    first_name text not null,
+    last_name text not null,
+    phone text not null
+);

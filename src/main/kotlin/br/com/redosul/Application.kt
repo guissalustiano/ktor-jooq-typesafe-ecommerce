@@ -8,6 +8,8 @@ import io.ktor.server.netty.*
 import br.com.redosul.plugins.*
 import br.com.redosul.product.ProductService
 import br.com.redosul.product.product
+import br.com.redosul.user.UserService
+import br.com.redosul.user.userRoutes
 
 fun main() {
     embeddedServer(Netty, port = 8080, watchPaths = listOf("classes"), host = "0.0.0.0", module = Application::module)
@@ -24,4 +26,5 @@ fun Application.module() {
 
     product(ProductService(dsl))
     categoryRoutes(CategoryService(dsl))
+    userRoutes(UserService(dsl))
 }

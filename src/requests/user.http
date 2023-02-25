@@ -1,0 +1,38 @@
+GET http://localhost:8080/users
+Accept: application/json
+
+###
+POST http://localhost:8080/users
+Content-Type: application/json
+
+{
+  "email": "mail@mail2.mail",
+  "name": {
+    "first": "First",
+    "last": "Last"
+  },
+    "phone": "+5541999287997"
+}
+
+###
+GET http://localhost:8080/users/0d177fd2-40cf-46f3-ac43-e83410d34656
+Accept: application/json
+
+###
+POST http://localhost:8080/users/0d177fd2-40cf-46f3-ac43-e83410d34656
+Content-Type: application/json
+
+{
+  "email": "mail2@mail2.mail",
+  "name": {
+    "first": "First",
+    "last": "Last2"
+  },
+  "phone": "+5541999287997"
+}
+
+###
+DELETE http://localhost:8080/users/0d177fd2-40cf-46f3-ac43-e83410d34656
+Content-Type: application/json
+
+###
