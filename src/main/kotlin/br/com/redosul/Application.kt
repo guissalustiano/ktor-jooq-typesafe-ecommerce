@@ -1,7 +1,7 @@
 package br.com.redosul
 
-import br.com.redosul.category.CategoryService
-import br.com.redosul.category.categoryRoutes
+import br.com.redosul.order.OrderService
+import br.com.redosul.order.categoryRoutes
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -25,6 +25,6 @@ fun Application.module() {
     configureOpenAPI()
 
     product(ProductService(dsl))
-    categoryRoutes(CategoryService(dsl))
+    categoryRoutes(OrderService(dsl))
     userRoutes(UserService(dsl))
 }

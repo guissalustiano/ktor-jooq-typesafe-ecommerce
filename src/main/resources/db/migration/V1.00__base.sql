@@ -22,7 +22,12 @@ create table product(
     description text not null default ''
 );
 
-CREATE TYPE clothe_size AS ENUM ('P', 'M', 'G', 'GG');
+create type clothe_size as enum (
+    'P',
+    'M',
+    'G',
+    'GG'
+);
 
 create table product_variant(
     id uuid primary key not null default gen_random_uuid(),
@@ -75,4 +80,45 @@ create table user_proprieties(
     first_name text not null,
     last_name text not null,
     phone text not null
+);
+
+create type order_status as enum (
+    'CREATED',
+    'BUDGETED',
+    'APPROVED',
+    'PRODUCED',
+    'DELIVERED',
+    'BILLED',
+    'FINISHED',
+    'CANCELED'
+);
+
+create table "order"
+(
+    id uuid primary key not null default gen_random_uuid(),
+    created_at timestamp with time zone not null default now(),
+    updated_at timestamp with time zone not null default now(),
+
+    customer_id uuid references "user"(id) not null,
+
+    budgeted_at timestamp with time zone,
+    approved_at timestamp with time zone,
+    produced_at timestamp with time zone,
+    delivered_at timestamp with time zone,
+    billed_at timestamp with time zone,
+    finished_at timestamp with time zone,
+    canceled_at timestamp with time zone
+);
+
+create table order_item(
+    id uuid primary key not null default gen_random_uuid(),
+    created_at timestamp with time zone not null default now(),
+    updated_at timestamp with time zone not null default now(),
+
+    order_id uuid references "order"(id) not null,
+
+    product_variant_id uuid references product_variant(id),
+
+    quantity integer not null,
+    price numeric(10,2) not null
 );
