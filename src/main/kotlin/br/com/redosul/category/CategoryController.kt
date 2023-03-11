@@ -14,8 +14,17 @@ import org.jooq.*
 import org.jooq.impl.*
 
 @Resource("/categories")
+/*
+ * GET - List: () -> CategoryTreeDto
+ * POST - Create: CategoryDto -> CategoryDto
+ */
 class CategoryResource {
     @Resource("{id}")
+    /*
+     * GET - Find by id: CategoryId -> CategoryDto
+     * POST - Update: (CategoryId, CategoryDto) -> CategoryDto
+     * DELETE - Delete: CategoryId -> CategoryDto
+     */
     class Id(val parent: CategoryResource, val id: CategoryId)
 }
 

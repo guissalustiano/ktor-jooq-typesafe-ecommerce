@@ -13,10 +13,12 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.OffsetDateTime
 
 class CategoryService(private val dsl: DSLContext) {
-    suspend fun findAll() : List<CategoryTreeDto> = dsl.selectFrom(CATEGORY)
-        .await()
-        .map{r -> r.toCategoryDto()}
-        .toTreeResponse()
+    suspend fun findAll() : List<CategoryTreeDto> {
+        return dsl.selectFrom(CATEGORY)
+            .await()
+            .map{r -> r.toCategoryDto()}
+            .toTreeResponse()
+    }
 
     suspend fun findById(id: CategoryId) : CategoryDto? {
         return dsl.selectFrom(CATEGORY)
@@ -26,8 +28,10 @@ class CategoryService(private val dsl: DSLContext) {
     }
 
     suspend fun create(payload: CategoryDto): CategoryDto {
-        return dsl.transactionCoroutine {
-            it.dsl().insertInto(CATEGORY)
+        return dsl.transactionCoroutine { config ->
+            val dsl = config.dsl()
+
+            dsl.insertInto(CATEGORY)
                 .set(payload.toRecord())
                 .set(CATEGORY.UPDATED_AT, OffsetDateTime.now())
                 .set(CATEGORY.CREATED_AT, OffsetDateTime.now())
@@ -38,20 +42,30 @@ class CategoryService(private val dsl: DSLContext) {
     }
 
     suspend fun updateById(id: CategoryId, payload: CategoryDto): CategoryDto? {
-        return dsl.update(CATEGORY)
-            .set(payload.toRecord())
-            .set(CATEGORY.UPDATED_AT, OffsetDateTime.now())
-            .where(CATEGORY.ID.eq(id.value))
-            .returningResult(CATEGORY.asterisk())
-            .awaitFirstOrNull()
-            ?.map { r -> r.toCategoryDto() }
+        return dsl.transactionCoroutine { config ->
+            val dsl = config.dsl()
+
+            dsl.update(CATEGORY)
+                .set(payload.toRecord())
+                .set(CATEGORY.UPDATED_AT, OffsetDateTime.now())
+                .where(CATEGORY.ID.eq(id.value))
+                .returningResult(CATEGORY.asterisk())
+                .awaitFirstOrNull()
+                ?.map { r -> r.toCategoryDto() }
+        }
     }
 
-    suspend fun deleteById(id: CategoryId) : CategoryDto? = dsl.deleteFrom(CATEGORY)
-        .where(CATEGORY.ID.eq(id.value))
-        .returningResult(CATEGORY.asterisk())
-        .awaitFirstOrNull()
-        ?.map { r -> r.toCategoryDto() }
+    suspend fun deleteById(id: CategoryId) : CategoryDto? {
+        return dsl.transactionCoroutine { config ->
+            val dsl = config.dsl()
+
+            dsl.deleteFrom(CATEGORY)
+                .where(CATEGORY.ID.eq(id.value))
+                .returningResult(CATEGORY.asterisk())
+                .awaitFirstOrNull()
+                ?.map { r -> r.toCategoryDto() }
+        }
+    }
 }
 
 private fun CategoryDto.toRecord() = CategoryRecord().also {

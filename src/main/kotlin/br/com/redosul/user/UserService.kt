@@ -17,12 +17,14 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.OffsetDateTime
 
 class UserService(private val dsl: DSLContext) {
-    suspend fun findAll() : List<UserDto> = dsl
-        .select(USER.asterisk(), USER_PROPRIETIES.asterisk())
-        .from(USER_PROPRIETIES).join(USER)
-        .on(USER_PROPRIETIES.USER_ID.eq(USER.ID))
-        .await()
-        .map{r -> r.toUserDto()}
+    suspend fun findAll() : List<UserDto> {
+        return dsl
+            .select(USER.asterisk(), USER_PROPRIETIES.asterisk())
+            .from(USER_PROPRIETIES).join(USER)
+            .on(USER_PROPRIETIES.USER_ID.eq(USER.ID))
+            .await()
+            .map{r -> r.toUserDto()}
+    }
 
     suspend fun findById(id: UserId) : UserDto? {
         return dsl.select(USER.asterisk(), USER_PROPRIETIES.asterisk())
@@ -34,8 +36,8 @@ class UserService(private val dsl: DSLContext) {
     }
 
     suspend fun create(payload: UserDto): UserDto {
-        return dsl.transactionCoroutine {
-            val dsl = it.dsl()
+        return dsl.transactionCoroutine {config ->
+            val dsl = config.dsl()
             val user =  dsl.insertInto(USER)
                 .set(payload.toUserRecord())
                 .set(USER_PROPRIETIES.ID, payload.id.value)
@@ -61,8 +63,8 @@ class UserService(private val dsl: DSLContext) {
     }
 
     suspend fun updateById(id: UserId, payload: UserDto): UserDto? {
-        return dsl.transactionCoroutine {
-            val dsl = it.dsl()
+        return dsl.transactionCoroutine {config ->
+            val dsl = config.dsl()
 
             val userProprieties = dsl.update(USER_PROPRIETIES)
                 .set(payload.toUserProprietiesRecord())
@@ -88,8 +90,8 @@ class UserService(private val dsl: DSLContext) {
     }
 
     suspend fun deleteById(id: UserId) : UserDto? {
-        return dsl.transactionCoroutine {
-            val dsl = it.dsl()
+        return dsl.transactionCoroutine {config ->
+            val dsl = config.dsl()
 
             val userProprieties = dsl.deleteFrom(USER_PROPRIETIES)
                 .where(USER_PROPRIETIES.ID.eq(id.value))
