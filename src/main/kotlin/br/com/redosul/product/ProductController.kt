@@ -16,7 +16,7 @@ class ProductsResource(val categoryId: CategoryId? = null) {
     class Id(val parent: ProductsResource = ProductsResource(), val id: ProductId)
 }
 
-fun Application.product(service: ProductService) {
+fun Application.productRoutes(service: ProductService) {
     routing {
         get<ProductsResource> {resource ->
             service.findAll(resource.categoryId).let {

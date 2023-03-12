@@ -62,7 +62,7 @@ class OrderResource {
     }
 }
 
-fun Application.categoryRoutes(service: OrderService) {
+fun Application.orderRoutes(service: OrderService) {
     routing {
         get<OrderResource> { _ ->
             service.findAll().let{

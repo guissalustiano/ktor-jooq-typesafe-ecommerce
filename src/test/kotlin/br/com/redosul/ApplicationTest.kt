@@ -1,11 +1,12 @@
 package br.com.redosul
 
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.server.testing.*
-import kotlin.test.*
-import io.ktor.http.*
-import br.com.redosul.plugins.*
+import br.com.redosul.plugins.configureRouting
+import io.kotest.matchers.shouldBe
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.testApplication
+import org.junit.Test
 
 class ApplicationTest {
     @Test
@@ -14,8 +15,8 @@ class ApplicationTest {
             configureRouting()
         }
         client.get("/").apply {
-            assertEquals(HttpStatusCode.OK, status)
-            assertEquals("Hello World!", bodyAsText())
+            status shouldBe HttpStatusCode.OK
+            bodyAsText() shouldBe "Hello World!"
         }
     }
 }

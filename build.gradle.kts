@@ -60,7 +60,6 @@ dependencies {
     implementation("org.postgresql:r2dbc-postgresql:$postgres_r2dbc_version")
     implementation("io.r2dbc:r2dbc-pool:$r2dbc_pool_version")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
-    testImplementation("io.kotest:kotest-runner-junit5:$kotest_version")
     testImplementation("io.kotest:kotest-property:$kotest_version")
     testImplementation("io.kotest:kotest-assertions-core:$kotest_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
