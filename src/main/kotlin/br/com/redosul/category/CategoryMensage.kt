@@ -32,7 +32,7 @@ data class CategoryDto(
 data class CategoryTreeDto(
     val id: CategoryId,
     val name: String,
-    val slug: Slug,
+    val slug: Slug = name.toSlug(),
     val description: String,
     val children: List<CategoryTreeDto>?,
     val createdAt: Instant? = null,
