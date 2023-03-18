@@ -1,181 +1,161 @@
 package br.com.redosul.category;
 
+import br.com.redosul.baseConfig
 import br.com.redosul.configureSerialization
-import br.com.redosul.plugins.configureRouting
-import br.com.redosul.plugins.configureSerialization
 import br.com.redosul.setJsonBody
+import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotBeEmpty
-import io.ktor.client.request.*
+import io.ktor.client.HttpClient
+import io.ktor.client.request.delete
+import io.ktor.client.request.get
+import io.ktor.client.request.post
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.*
+import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlin.test.Test
 
-class CategoryControllerTest {
-    private val categoryService = mockk<CategoryService>()
+class CategoryControllerTest : FunSpec({
+    val categoryService = mockk<CategoryService>()
 
-    @Test
-    fun testGetCategories() = testApplication {
+    fun ApplicationTestBuilder.setup(): HttpClient {
         application {
-            configureSerialization()
-            configureRouting()
+            baseConfig()
             categoryRoutes(categoryService)
         }
-        coEvery { categoryService.findAll() } returns (0..5).map { CategoryFaker.categoryTree() }
-
-
-        client.get("/categories").apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText().shouldNotBeEmpty()
+        return createClient {
+            configureSerialization()
         }
-
-        coVerify { categoryService.findAll() }
     }
 
-    @Test
-    fun testPostCategories() = testApplication {
-        application {
-            configureSerialization()
-            configureRouting()
-            categoryRoutes(categoryService)
-        }
-        val client = createClient {
-            configureSerialization()
-        }
-        coEvery { categoryService.create(any()) } returns CategoryFaker.category()
+    context("GET /categories") {
+        test("should return 200") {
+            testApplication {
+                val client = setup()
+                coEvery { categoryService.findAll() } returns (0..5).map { CategoryFaker.categoryTree() }
 
-        val payload = CategoryFaker.category()
-        client.post("/categories"){
-            setJsonBody(payload)
-        }.apply {
-            status shouldBe HttpStatusCode.Created
-        }
+                client.get("/categories").apply {
+                    status shouldBe HttpStatusCode.OK
+                    bodyAsText().shouldNotBeEmpty()
+                }
 
-        coVerify { categoryService.create(payload) }
+                coVerify { categoryService.findAll() }
+            }
+        }
     }
 
-    @Test
-    fun testDeleteCategoriesId() = testApplication {
-        application {
-            configureSerialization()
-            configureRouting()
-            categoryRoutes(categoryService)
-        }
-        val id = CategoryId()
-        coEvery { categoryService.deleteById(id) } returns CategoryFaker.category().copy(id = id)
 
-        client.delete("/categories/${id.value}").apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText().shouldNotBeEmpty()
-        }
 
-        coVerify { categoryService.deleteById(id) }
+    context("POST /categories") {
+        test("should return 201") {
+            testApplication {
+                val client = setup()
+            coEvery { categoryService.create(any()) } returns CategoryFaker.category()
+
+            val payload = CategoryFaker.category()
+            client.post("/categories") {
+                setJsonBody(payload)
+            }.apply {
+                status shouldBe HttpStatusCode.Created
+            }
+
+            coVerify { categoryService.create(payload) }
+        }}
     }
 
-    @Test
-    fun testDeleteCategoriesIdNull() = testApplication {
-        application {
-            configureSerialization()
-            configureRouting()
-            categoryRoutes(categoryService)
-        }
-        val id = CategoryId()
-        coEvery { categoryService.deleteById(id) } returns null
+    context("DELETE /categories/:id") {
+        test("should return 200") {
+            testApplication {
+                val client = setup()
+            val id = CategoryId()
+            coEvery { categoryService.deleteById(id) } returns CategoryFaker.category().copy(id = id)
 
-        client.delete("/categories/${id.value}").apply {
-            status shouldBe HttpStatusCode.NotFound
-        }
+            client.delete("/categories/${id.value}").apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText().shouldNotBeEmpty()
+            }
 
-        coVerify { categoryService.deleteById(id) }
+            coVerify { categoryService.deleteById(id) }
+        }}
+
+        test("should return 404 when not found") {
+            testApplication {
+                val client = setup()
+            val id = CategoryId()
+            coEvery { categoryService.deleteById(id) } returns null
+
+            client.delete("/categories/${id.value}").apply {
+                status shouldBe HttpStatusCode.NotFound
+            }
+
+            coVerify { categoryService.deleteById(id) }
+        }}
     }
 
-    @Test
-    fun testGetCategoriesId() = testApplication {
-        application {
-            configureSerialization()
-            configureRouting()
-            categoryRoutes(categoryService)
-        }
+    context("GET /categories/:id") {
+        test("should return 200") {
+            testApplication {
+                val client = setup()
+            val id = CategoryId()
+            coEvery { categoryService.findById(id) } returns CategoryFaker.category().copy(id = id)
 
-        val id = CategoryId()
-        coEvery { categoryService.findById(id) } returns CategoryFaker.category().copy(id = id)
+            client.get("/categories/${id.value}").apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText().shouldNotBeEmpty()
+            }
 
-        client.get("/categories/${id.value}").apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText().shouldNotBeEmpty()
-        }
+            coVerify { categoryService.findById(id) }
+        }}
 
-        coVerify { categoryService.findById(id) }
+        test("should return 404 when not found") {
+            testApplication {
+                val client = setup()
+            val id = CategoryId()
+            coEvery { categoryService.findById(id) } returns null
+
+            client.get("/categories/${id.value}").apply {
+                status shouldBe HttpStatusCode.NotFound
+            }
+
+            coVerify { categoryService.findById(id) }
+        }}
     }
 
-    @Test
-    fun testGetCategoriesIdNull() = testApplication {
-        application {
-            configureSerialization()
-            configureRouting()
-            categoryRoutes(categoryService)
-        }
+    context("POST /categories/:id") {
+        test("should return 200") {
+            testApplication {
+                val client = setup()
+            val id = CategoryId()
+            val payload = CategoryFaker.category().copy(id = id)
+            coEvery { categoryService.updateById(id, payload) } returns CategoryFaker.category().copy(id = id)
 
-        val id = CategoryId()
-        coEvery { categoryService.findById(id) } returns null
+            client.post("/categories/${id.value}") {
+                setJsonBody(payload)
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText().shouldNotBeEmpty()
+            }
 
-        client.get("/categories/${id.value}").apply {
-            status shouldBe HttpStatusCode.NotFound
-        }
+            coVerify { categoryService.updateById(id, payload) }
+        }}
 
-        coVerify { categoryService.findById(id) }
+        test("should return 404") {
+            testApplication {
+                val client = setup()
+            val id = CategoryId()
+            val payload = CategoryFaker.category().copy(id = id)
+            coEvery { categoryService.updateById(id, payload) } returns null
+
+            client.post("/categories/${id.value}") {
+                setJsonBody(payload)
+            }.apply {
+                status shouldBe HttpStatusCode.NotFound
+            }
+
+            coVerify { categoryService.updateById(id, payload) }
+        }}
     }
-
-    @Test
-    fun testPostCategoriesId() = testApplication {
-        application {
-            configureSerialization()
-            configureRouting()
-            categoryRoutes(categoryService)
-        }
-        val client = createClient {
-            configureSerialization()
-        }
-
-        val id = CategoryId()
-        val payload = CategoryFaker.category().copy(id = id)
-        coEvery { categoryService.updateById(id, payload) } returns CategoryFaker.category().copy(id = id)
-
-        client.post("/categories/${id.value}"){
-            setJsonBody(payload)
-        }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText().shouldNotBeEmpty()
-        }
-
-        coVerify { categoryService.updateById(id, payload) }
-    }
-
-    @Test
-    fun testPostCategoriesIdNull() = testApplication {
-        application {
-            configureSerialization()
-            configureRouting()
-            categoryRoutes(categoryService)
-        }
-        val client = createClient {
-            configureSerialization()
-        }
-
-        val id = CategoryId()
-        val payload = CategoryFaker.category().copy(id = id)
-        coEvery { categoryService.updateById(id, payload) } returns null
-
-        client.post("/categories/${id.value}"){
-            setJsonBody(payload)
-        }.apply {
-            status shouldBe HttpStatusCode.NotFound
-        }
-
-        coVerify { categoryService.updateById(id, payload) }
-    }
-}
+})

@@ -1,7 +1,10 @@
 # TODO:
-- use OffsetDateTime
 - testes
+  - kotest multi plataform framework
+  - test containers
 - client
+- idempotent and soft delete
+- use slug instead id in category, product
 
 - quantidade minima de produtos
 - customização do produto

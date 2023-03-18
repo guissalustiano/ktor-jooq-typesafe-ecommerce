@@ -1,6 +1,7 @@
 package br.com.redosul
 
 import br.com.redosul.plugins.configureRouting
+import br.com.redosul.plugins.configureSerialization
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngineConfig
@@ -13,6 +14,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.application.Application
 import io.ktor.server.testing.testApplication
 import kotlin.test.Test
 
@@ -39,4 +41,9 @@ fun <T : HttpClientEngineConfig> HttpClientConfig<T>.configureSerialization() {
 inline fun <reified T> HttpRequestBuilder.setJsonBody(body: T) {
     contentType(ContentType.Application.Json)
     setBody(body)
+}
+
+fun Application.baseConfig() {
+    configureSerialization()
+    configureRouting()
 }
