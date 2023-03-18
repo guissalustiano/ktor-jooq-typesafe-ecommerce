@@ -17,22 +17,32 @@ import org.jooq.impl.DSL
 import reactor.core.publisher.Flux
 import java.time.Duration
 
-fun Application.configureDatabases(): DSLContext {
-    val dataSource = createDataSource()
+data class DatabaseConfig(
+    val url: String,
+    val username: String,
+    val password: String,
+    val maxIdleTime: Duration = Duration.ofMillis(1000),
+    val maxSize: Int = 20
+)
+
+fun Application.getEnvDatabaseConfig() = DatabaseConfig(
+    url = "r2dbc:" + (System.getenv("DB_URL") ?: "postgresql://localhost:65432/redosul"),
+    username = System.getenv("DB_USER") ?: "postgres",
+    password = System.getenv("DB_PASSWORD") ?: "password",
+)
+
+fun configureDatabases(config: DatabaseConfig): DSLContext {
+    val dataSource = createDataSource(config)
     return createDSLContext(dataSource)
 }
 
-private fun createDataSource(): ConnectionPool {
-    val url = "r2dbc:" + (System.getenv("DB_URL") ?: "postgresql://localhost:65432/redosul")
-    val username = System.getenv("DB_USER") ?: "postgres"
-    val password = System.getenv("DB_PASSWORD") ?: "password"
-
+private fun createDataSource(config: DatabaseConfig): ConnectionPool {
     val connectionFactory = ConnectionFactories.get(
         ConnectionFactoryOptions
-            .parse(url)
+            .parse(config.url)
             .mutate()
-            .option(ConnectionFactoryOptions.USER, username)
-            .option(ConnectionFactoryOptions.PASSWORD, password)
+            .option(ConnectionFactoryOptions.USER, config.username)
+            .option(ConnectionFactoryOptions.PASSWORD, config.password)
             .build()
     )
 

@@ -20,7 +20,7 @@ fun main() {
 
 fun Application.module() {
     configureSerialization()
-    val dsl = configureDatabases()
+    val dsl = configureDatabases(getEnvDatabaseConfig())
     configureStatusResponse()
     configureRouting()
     configureCORS()

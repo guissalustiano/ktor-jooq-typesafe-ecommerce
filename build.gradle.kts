@@ -14,6 +14,7 @@ val r2dbc_pool_version: String by project
 val kotlinx_datetime_version: String by project
 val mockk_version: String by project
 val faker_version: String by project
+val testcontainer_postgres_version: String by project
 
 plugins {
     kotlin("jvm") version "1.8.10"
@@ -65,6 +66,7 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core:$kotest_version")
     testImplementation("io.kotest:kotest-runner-junit5:$kotest_version")
     testImplementation("io.mockk:mockk:${mockk_version}")
+    testImplementation("org.testcontainers:postgresql:$testcontainer_postgres_version")
     testImplementation("com.github.javafaker:javafaker:$faker_version")
 }
 
