@@ -53,109 +53,114 @@ class CategoryControllerTest : FunSpec({
         test("should return 201") {
             testApplication {
                 val client = setup()
-            coEvery { categoryService.create(any()) } returns CategoryFaker.response()
+                coEvery { categoryService.create(any()) } returns Unit
 
-            val payload = CategoryFaker.createPayload()
-            client.post("/categories") {
-                setJsonBody(payload)
-            }.apply {
-                status shouldBe HttpStatusCode.Created
+                val payload = CategoryFaker.createPayload()
+                client.post("/categories") {
+                    setJsonBody(payload)
+                }.apply {
+                    status shouldBe HttpStatusCode.Created
+                }
+
+                coVerify { categoryService.create(payload) }
             }
-
-            coVerify { categoryService.create(payload) }
-        }}
+        }
     }
 
     context("DELETE /categories/:id") {
         test("should return 200") {
             testApplication {
                 val client = setup()
-            val id = CategoryId()
-            coEvery { categoryService.deleteById(id) } returns CategoryFaker.response().copy(id = id)
+                val slug = CategoryFaker.response().slug
+                coEvery { categoryService.deleteBySlug(slug) } returns Unit
 
-            client.delete("/categories/${id.value}").apply {
-                status shouldBe HttpStatusCode.OK
-                bodyAsText().shouldNotBeEmpty()
+                client.delete("/categories/${slug.slug}").apply {
+                    status shouldBe HttpStatusCode.NoContent
+                    bodyAsText().shouldNotBeEmpty()
+                }
+
+                coVerify { categoryService.deleteBySlug(slug) }
             }
-
-            coVerify { categoryService.deleteById(id) }
-        }}
+        }
 
         test("should return 404 when not found") {
             testApplication {
                 val client = setup()
-            val id = CategoryId()
-            coEvery { categoryService.deleteById(id) } returns null
+                val slug = CategoryFaker.response().slug
+                coEvery { categoryService.deleteBySlug(slug) } returns null
 
-            client.delete("/categories/${id.value}").apply {
-                status shouldBe HttpStatusCode.NotFound
+                client.delete("/categories/${slug.slug}").apply {
+                    status shouldBe HttpStatusCode.NotFound
+                }
+
+                coVerify { categoryService.deleteBySlug(slug) }
             }
-
-            coVerify { categoryService.deleteById(id) }
-        }}
+        }
     }
 
     context("GET /categories/:id") {
         test("should return 200") {
             testApplication {
                 val client = setup()
-            val id = CategoryId()
-            coEvery { categoryService.findById(id) } returns CategoryFaker.response().copy(id = id)
+                val fake = CategoryFaker.response()
+                coEvery { categoryService.findBySlug(fake.slug) } returns fake
 
-            client.get("/categories/${id.value}").apply {
-                status shouldBe HttpStatusCode.OK
-                bodyAsText().shouldNotBeEmpty()
+                client.get("/categories/${fake.slug.slug}").apply {
+                    status shouldBe HttpStatusCode.OK
+                    bodyAsText().shouldNotBeEmpty()
+                }
+
+                coVerify { categoryService.findBySlug(fake.slug) }
             }
-
-            coVerify { categoryService.findById(id) }
-        }}
+        }
 
         test("should return 404 when not found") {
             testApplication {
                 val client = setup()
-            val id = CategoryId()
-            coEvery { categoryService.findById(id) } returns null
+                val fake = CategoryFaker.response()
+                coEvery { categoryService.findBySlug(fake.slug) } returns null
 
-            client.get("/categories/${id.value}").apply {
-                status shouldBe HttpStatusCode.NotFound
+                client.get("/categories/${fake.slug.slug}").apply {
+                    status shouldBe HttpStatusCode.NotFound
+                }
+
+                coVerify { categoryService.findBySlug(fake.slug) }
             }
-
-            coVerify { categoryService.findById(id) }
-        }}
+        }
     }
 
     context("POST /categories/:id") {
         test("should return 200") {
             testApplication {
                 val client = setup()
-            val id = CategoryId()
-            val payload = CategoryFaker.createPayload()
-            coEvery { categoryService.updateById(id, any()) } returns CategoryFaker.response().copy(id = id)
+                val fake = CategoryFaker.createPayload()
+                coEvery { categoryService.updateBySlug(fake.slug, any()) } returns Unit
 
-            client.post("/categories/${id.value}") {
-                setJsonBody(payload)
-            }.apply {
-                status shouldBe HttpStatusCode.OK
-                bodyAsText().shouldNotBeEmpty()
+                client.post("/categories/${fake.slug.slug}") {
+                    setJsonBody(fake)
+                }.apply {
+                    status shouldBe HttpStatusCode.NoContent
+                    bodyAsText().shouldNotBeEmpty()
+                }
+
+                coVerify { categoryService.updateBySlug(fake.slug, any()) }
             }
-
-            coVerify { categoryService.updateById(id, any()) }
-        }}
+        }
 
         test("should return 404") {
             testApplication {
                 val client = setup()
-            val id = CategoryId()
-            val payload = CategoryFaker.createPayload()
-            coEvery { categoryService.updateById(id, any()) } returns null
+                val fake = CategoryFaker.createPayload()
+                coEvery { categoryService.updateBySlug(fake.slug, any()) } returns null
 
-            client.post("/categories/${id.value}") {
-                setJsonBody(payload)
-            }.apply {
-                status shouldBe HttpStatusCode.NotFound
+                client.post("/categories/${fake.slug.slug}") {
+                    setJsonBody(fake)
+                }.apply {
+                    status shouldBe HttpStatusCode.NotFound
+                }
+
+                coVerify { categoryService.updateBySlug(fake.slug, any()) }
             }
-
-            coVerify { categoryService.updateById(id, any()) }
-        }}
+        }
     }
 })

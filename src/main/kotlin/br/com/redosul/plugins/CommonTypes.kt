@@ -27,6 +27,8 @@ value class Slug(val value: String): Comparable<Slug> {
 
 interface SlugId: Comparable<Slug>{
     val value: Slug
+    val slug: String
+        get() = value.value
 
     override fun compareTo(other: Slug): Int = value.compareTo(other)
 }
@@ -35,6 +37,34 @@ fun String.toSlug() = Slug.from(this)
 
 
 fun OffsetDateTime.toKotlinInstant(): Instant = toInstant().toKotlinInstant()
+
+@Serializable
+sealed class Undefined<out T> {
+    @Serializable
+    object None : Undefined<Nothing>()
+
+    @Serializable
+    data class Defined<T>(val value: T) : Undefined<T>()
+}
+
+inline fun <reified T, R> Undefined<T>.map(transform: (T) -> R): Undefined<R> {
+    return when (this) {
+        Undefined.None -> Undefined.None
+        is Undefined.Defined -> Undefined.Defined(transform(value))
+    }
+}
+
+inline fun <reified T> Undefined<T>.getOrElse(default: () -> T): T {
+    return when (this) {
+        Undefined.None -> default()
+        is Undefined.Defined -> value
+    }
+}
+
+inline fun <reified T> Undefined<T>.getOrNull(): T? = getOrElse { null }
+
+inline fun <reified T> Undefined<T>.get(): T = getOrElse { throw Exception("Undefined not found $this") }
+
 
 @JvmInline
 @Serializable

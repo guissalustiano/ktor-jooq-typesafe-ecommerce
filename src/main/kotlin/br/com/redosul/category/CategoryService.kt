@@ -2,135 +2,144 @@ package br.com.redosul.category
 
 import br.com.redosul.generated.tables.records.CategoryRecord
 import br.com.redosul.generated.tables.references.CATEGORY
+import br.com.redosul.plugins.UUID
 import br.com.redosul.plugins.await
-import br.com.redosul.plugins.ifDefined
+import br.com.redosul.plugins.map
+import br.com.redosul.plugins.map
 import br.com.redosul.plugins.toKotlinInstant
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 import org.jooq.Record
+import org.jooq.Record1
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.OffsetDateTime
 
 class CategoryService(private val dsl: DSLContext) {
+    private val PARENT_CATEGORY = CATEGORY.`as`("parent")
+
     suspend fun findAll() : List<CategoryTreeResponse> {
-        return dsl.selectFrom(CATEGORY)
+        return dsl.select(CATEGORY.asterisk(), PARENT_CATEGORY.SLUG).from(CATEGORY)
+            .leftJoin(PARENT_CATEGORY).on(CATEGORY.PARENT_ID.eq(PARENT_CATEGORY.ID))
             .await()
             .map{r -> r.toCategoryDto()}
             .toTreeResponse()
     }
 
-    suspend fun findById(id: CategoryId) : CategoryResponse? {
-        return dsl.selectFrom(CATEGORY)
-            .where(CATEGORY.ID.eq(id.value))
+    suspend fun findBySlug(slugId: CategorySlug) : CategoryResponse? {
+        return dsl.select(CATEGORY.asterisk(), PARENT_CATEGORY.SLUG).from(CATEGORY)
+            .leftJoin(PARENT_CATEGORY).on(CATEGORY.PARENT_ID.eq(PARENT_CATEGORY.ID))
+            .where(CATEGORY.SLUG.eq(slugId.slug))
             .awaitFirstOrNull()
             ?.map{ r -> r.toCategoryDto() }
     }
 
-    suspend fun findBySlug(slug: CategorySlug) : CategoryResponse? {
-        return dsl.selectFrom(CATEGORY)
-            .where(CATEGORY.SLUG.eq(slug.value.value))
-            .awaitFirstOrNull()
-            ?.map{ r -> r.toCategoryDto() }
-    }
-
-    suspend fun create(payload: CategoryCreatePayload): CategoryResponse {
-        payload.parentId?.let {
-            findById(it) ?: throw CategoryError.ParentNotFound(it)
+    suspend fun create(payload: CategoryCreatePayload): Unit {
+        val payloadParent = payload.parentSlug?.let {
+            findBySlug(it) ?: throw CategoryError.ParentNotFound(it)
         }
 
         findBySlug(payload.slug)?.let {
             throw CategoryError.SlugAlreadyExists(payload.slug)
         }
 
-        return dsl.transactionCoroutine { config ->
+        val record = CategoryRecord().apply {
+            parentId = payloadParent?.id?.value
+            name = payload.name
+            slug = payload.slug.slug
+            description = payload.description
+        }
+
+        val insertedSlug = dsl.transactionCoroutine { config ->
             val dsl = config.dsl()
 
             dsl.insertInto(CATEGORY)
-                .set(payload.toRecord())
-                .set(CATEGORY.UPDATED_AT, OffsetDateTime.now())
-                .set(CATEGORY.CREATED_AT, OffsetDateTime.now())
-                .returningResult(CATEGORY.asterisk())
+                .set(record)
+                .returningResult(CATEGORY.SLUG)
                 .awaitFirst()
-                .map { r -> r.toCategoryDto() }
+                .toCategorySlug()
         }
+
+        insertedSlug.let { }
     }
 
-    suspend fun updateById(id: CategoryId, payload: CategoryUpdatePayload): CategoryResponse? {
-        payload.parentId.ifDefined { parentId ->
-            parentId?.let {
-                findById(it) ?: throw CategoryError.ParentNotFound(it)
+    suspend fun updateBySlug(slugId: CategorySlug, payload: CategoryUpdatePayload): Unit? {
+        val payloadParent = payload.parentSlug.map { parentSlug ->
+            parentSlug?.let {
+                findBySlug(it) ?: throw CategoryError.ParentNotFound(it)
             }
         }
 
-        payload.slug.ifDefined { slug ->
-                findBySlug(slug)?.takeIf { it.id != id }?.let {
-                    throw CategoryError.SlugAlreadyExists(it.slug)
-                }
+        payload.slug.map { slug ->
+            findBySlug(slug)?.takeIf { it.slug != slugId }?.let {
+                throw CategoryError.SlugAlreadyExists(it.slug)
+            }
         }
 
-        return dsl.transactionCoroutine { config ->
+        val record = CategoryRecord().apply {
+            payloadParent.map { parentId = it?.id?.value }
+            payload.name.map { name = it }
+            payload.slug.map { slug = it.slug }
+            payload.description.map { description = it }
+        }
+
+        val updatedSlug = dsl.transactionCoroutine { config ->
             val dsl = config.dsl()
 
             dsl.update(CATEGORY)
-                .set(payload.toRecord())
+                .set(record)
                 .set(CATEGORY.UPDATED_AT, OffsetDateTime.now())
-                .where(CATEGORY.ID.eq(id.value))
-                .returningResult(CATEGORY.asterisk())
+                .where(CATEGORY.SLUG.eq(slugId.slug))
+                .returningResult(CATEGORY.SLUG)
                 .awaitFirstOrNull()
-                ?.map { r -> r.toCategoryDto() }
+                ?.toCategorySlug()
         }
+
+        return updatedSlug?.let { }
     }
 
-    suspend fun deleteById(id: CategoryId) : CategoryResponse? {
-        return dsl.transactionCoroutine { config ->
+    suspend fun deleteBySlug(slugId: CategorySlug) : Unit? {
+        val deletedSlug = dsl.transactionCoroutine { config ->
             val dsl = config.dsl()
 
             dsl.deleteFrom(CATEGORY)
-                .where(CATEGORY.ID.eq(id.value))
-                .returningResult(CATEGORY.asterisk())
+                .where(CATEGORY.SLUG.eq(slugId.slug))
+                .returningResult(CATEGORY.SLUG)
                 .awaitFirstOrNull()
-                ?.map { r -> r.toCategoryDto() }
+                ?.toCategorySlug()
+
         }
+
+        return deletedSlug?.let { }
+    }
+
+    private fun <T1> Record1<T1>.toCategorySlug() = map { r -> r.into(CATEGORY).slug }.toCategorySlug()
+
+    private fun Record.toCategoryDto(): CategoryResponse {
+        val category = into(CATEGORY)
+        val parent = into(PARENT_CATEGORY)
+        return CategoryResponse(
+            CategoryId(category.id!!),
+            parent.slug?.toCategorySlug(),
+            category.name!!,
+            category.slug!!.toCategorySlug(),
+            category.description!!,
+            category.createdAt!!.toKotlinInstant(),
+            category.updatedAt!!.toKotlinInstant(),
+        )
     }
 }
 
-private fun CategoryCreatePayload.toRecord() = CategoryRecord().also {
-    it.parentId = parentId?.value
-    it.name = name
-    it.slug = slug.value.value
-    it.description = description
-}
-
-private fun CategoryUpdatePayload.toRecord() = CategoryRecord().also {
-   parentId.ifDefined { v ->  it.parentId = v?.value }
-    name.ifDefined { v -> it.name = v }
-    slug.ifDefined { v -> it.slug = v.value.value }
-    description.ifDefined { v -> it.description = v }
-}
-
-private fun Record.toCategoryDto() = this.into(CATEGORY).toDto()
-
-private fun CategoryRecord.toDto() = CategoryResponse(
-    CategoryId(id!!),
-    parentId?.let { CategoryId(it) },
-    name!!,
-    slug!!.toCategorySlug(),
-    description!!,
-    createdAt!!.toKotlinInstant(),
-    updatedAt!!.toKotlinInstant(),
-)
-
-private fun getChildren(parentId: CategoryId?, plain: List<CategoryResponse>): List<CategoryTreeResponse> {
+private fun getChildren(parentSlug: CategorySlug?, plain: List<CategoryResponse>): List<CategoryTreeResponse> {
     return plain.filter {
-        it.parentId == parentId
+        it.parentSlug == parentSlug
     }.map {
         CategoryTreeResponse(
             it.id,
             it.name,
             it.slug,
             it.description,
-            getChildren(it.id, plain).ifEmpty { null },
+            getChildren(it.slug, plain).ifEmpty { null },
             it.createdAt,
             it.updatedAt,
         )

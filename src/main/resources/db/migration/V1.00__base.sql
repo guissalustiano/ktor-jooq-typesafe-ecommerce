@@ -6,7 +6,7 @@ create table category(
     parent_id uuid references category(id),
 
     name text not null,
-    slug text not null unique,
+    slug text not null unique, -- domain key
     description text not null default ''
 );
 

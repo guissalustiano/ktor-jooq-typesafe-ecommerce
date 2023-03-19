@@ -11,7 +11,7 @@ object CategoryFaker {
 
     fun response() = CategoryResponse(
         id = CategoryId(),
-        parentId = null,
+        parentSlug = null,
         name = faker.team().name(),
         slug = faker.team().name().toCategorySlug(),
         description = faker.lorem().sentence(),

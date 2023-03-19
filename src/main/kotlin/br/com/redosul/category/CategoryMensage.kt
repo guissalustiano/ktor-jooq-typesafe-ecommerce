@@ -5,6 +5,8 @@ import br.com.redosul.plugins.Slug
 import br.com.redosul.plugins.SlugId
 import br.com.redosul.plugins.UUID
 import br.com.redosul.plugins.Undefined
+import br.com.redosul.plugins.getOrNull
+import br.com.redosul.plugins.map
 import br.com.redosul.plugins.toSlug
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
@@ -21,24 +23,38 @@ fun String.toCategorySlug() = CategorySlug(toSlug())
 
 @Serializable
 data class CategoryCreatePayload(
-    val parentId: CategoryId? = null,
+    val parentSlug: CategorySlug? = null,
     val name: String,
     val slug: CategorySlug = name.toCategorySlug(),
     val description: String = "",
-)
+){
+    init {
+        if (slug == parentSlug) {
+            throw CategoryError.CyclicReference(slug)
+        }
+    }
+}
 
 @Serializable
 data class CategoryUpdatePayload(
-    val parentId: Undefined<CategoryId?> = Undefined.None,
+    val parentSlug: Undefined<CategorySlug?> = Undefined.None,
     val name: Undefined<String> = Undefined.None,
     val slug: Undefined<CategorySlug> = Undefined.None,
     val description: Undefined<String> = Undefined.None,
-)
+){
+    init {
+        slug.map {
+            if (it == parentSlug.getOrNull()) {
+                throw CategoryError.CyclicReference(it)
+            }
+        }
+    }
+}
 
 @Serializable
 data class CategoryResponse(
-    val id: CategoryId = CategoryId(),
-    val parentId: CategoryId?,
+    val id: CategoryId,
+    val parentSlug: CategorySlug?,
     val name: String,
     val slug: CategorySlug,
     val description: String,
@@ -46,8 +62,8 @@ data class CategoryResponse(
     val updatedAt: Instant,
 ) {
     init {
-        if (id == parentId) {
-            throw CategoryError.CyclicReference(id)
+        if (slug == parentSlug) {
+            throw CategoryError.CyclicReference(slug)
         }
     }
 }
@@ -65,7 +81,7 @@ data class CategoryTreeResponse(
 
 // Errors
 sealed class CategoryError(message: String): Exception(message) {
-    class CyclicReference(id: CategoryId): CategoryError("Category with id $id cannot be its own parent")
+    class CyclicReference(id: CategorySlug): CategoryError("Category with id $id cannot be its own parent")
     class SlugAlreadyExists(slug: CategorySlug): CategoryError("Category with slug $slug already exists")
-    class ParentNotFound(id: CategoryId): CategoryError("Parent category with id $id not found")
+    class ParentNotFound(id: CategorySlug): CategoryError("Parent category with id $id not found")
 }

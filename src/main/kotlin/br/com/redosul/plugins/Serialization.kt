@@ -18,31 +18,6 @@ fun Application.configureSerialization() {
     }
 }
 
-@Serializable
-sealed class Undefined<out T> {
-    @Serializable
-    object None : Undefined<Nothing>()
-
-    @Serializable
-    data class Defined<T>(val value: T) : Undefined<T>()
-}
-
-inline fun <reified T> Undefined<T>.ifDefined(transform: (T) -> Unit) {
-    when (this) {
-        Undefined.None -> Undefined.None
-        is Undefined.Defined -> Undefined.Defined(transform(value))
-    }
-}
-
-inline fun <reified T> Undefined<T>.getOrElse(default: () -> T): T {
-    return when (this) {
-        Undefined.None -> default()
-        is Undefined.Defined -> value
-    }
-}
-
-inline fun <reified T> Undefined<T>.get(): T = getOrElse { throw Exception("Undefined not found $this") }
-
 object UUIDSerializer : KSerializer<UUID> {
     override val descriptor = PrimitiveSerialDescriptor("UUID", PrimitiveKind.STRING)
 
