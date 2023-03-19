@@ -2,6 +2,8 @@ package br.com.redosul
 
 import br.com.redosul.plugins.configureRouting
 import br.com.redosul.plugins.configureSerialization
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.core.spec.style.scopes.FunSpecContainerScope
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngineConfig
@@ -16,6 +18,7 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.testing.testApplication
+import kotlin.reflect.KFunction
 import kotlin.test.Test
 
 class ApplicationTest {
@@ -47,3 +50,6 @@ fun Application.baseConfig() {
     configureSerialization()
     configureRouting()
 }
+
+fun <T> FunSpec.context(name: KFunction<T>, test: suspend FunSpecContainerScope.() -> Unit)
+        = context(name.toString(), test)

@@ -14,13 +14,21 @@ interface Id: Comparable<UUID> {
 
 @JvmInline
 @Serializable
-value class Slug(val value: String) {
+value class Slug(val value: String): Comparable<Slug> {
     init {
         require(value.matches(Regex("[a-z0-9-]+"))) { "Slug must be lowercase, alphanumeric and hyphenated, current: $value" }
     }
     companion object {
         fun from(value: String) = Slug(value.lowercase().replace(" ", "-"))
     }
+
+    override fun compareTo(other: Slug): Int = value.compareTo(other.value)
+}
+
+interface SlugId: Comparable<Slug>{
+    val value: Slug
+
+    override fun compareTo(other: Slug): Int = value.compareTo(other)
 }
 
 fun String.toSlug() = Slug.from(this)

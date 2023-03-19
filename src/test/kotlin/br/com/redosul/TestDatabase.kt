@@ -12,10 +12,9 @@ private val <SELF : PostgreSQLContainer<SELF>?> PostgreSQLContainer<SELF>.r2dbcU
 
 private object TestDatabase {
     private val containerDb by lazy {
-        PostgreSQLContainer<Nothing>("postgres:15").apply {
+        PostgreSQLContainer<Nothing>("postgres:15-alpine").apply {
             startupAttempts = 1
-            withUrlParam("connectionTimeZone", "Z")
-            withUrlParam("zeroDateTimeBehavior", "convertToNull")
+
             start()
 
             Flyway.configure()

@@ -10,7 +10,7 @@ object CategoryFaker {
     fun category() = CategoryDto(
         id = CategoryId(),
         parentId = null,
-        name = faker.lorem().word(),
+        name = faker.team().name(),
         description = faker.lorem().sentence(),
         createdAt = faker.date().past(),
         updatedAt = faker.date().past(),

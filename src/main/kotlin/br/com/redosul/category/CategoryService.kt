@@ -27,7 +27,22 @@ class CategoryService(private val dsl: DSLContext) {
             ?.map{ r -> r.toCategoryDto() }
     }
 
+    suspend fun findBySlug(slug: CategorySlug) : CategoryDto? {
+        return dsl.selectFrom(CATEGORY)
+            .where(CATEGORY.SLUG.eq(slug.value.value))
+            .awaitFirstOrNull()
+            ?.map{ r -> r.toCategoryDto() }
+    }
+
     suspend fun create(payload: CategoryDto): CategoryDto {
+        payload.parentId?.let {
+            findById(it) ?: throw CategoryError.ParentNotFound(it)
+        }
+
+        findBySlug(payload.slug)?.let {
+            throw CategoryError.SlugAlreadyExists(payload.slug)
+        }
+
         return dsl.transactionCoroutine { config ->
             val dsl = config.dsl()
 
@@ -42,6 +57,14 @@ class CategoryService(private val dsl: DSLContext) {
     }
 
     suspend fun updateById(id: CategoryId, payload: CategoryDto): CategoryDto? {
+        payload.parentId?.let {
+            findById(it) ?: throw CategoryError.ParentNotFound(it)
+        }
+
+        findBySlug(payload.slug)?.takeIf { it.id != id }?.let {
+            throw CategoryError.SlugAlreadyExists(payload.slug)
+        }
+
         return dsl.transactionCoroutine { config ->
             val dsl = config.dsl()
 
@@ -72,7 +95,7 @@ private fun CategoryDto.toRecord() = CategoryRecord().also {
     it.id = id.value
     it.parentId = parentId?.value
     it.name = name
-    it.slug = slug.value
+    it.slug = slug.value.value
     it.description = description
 }
 
@@ -82,7 +105,7 @@ private fun CategoryRecord.toDto() = CategoryDto(
     CategoryId(id!!),
     parentId?.let { CategoryId(it) },
     name!!,
-    Slug(slug!!),
+    slug!!.toCategorySlug(),
     description!!,
     createdAt?.toKotlinInstant(),
     updatedAt?.toKotlinInstant(),
