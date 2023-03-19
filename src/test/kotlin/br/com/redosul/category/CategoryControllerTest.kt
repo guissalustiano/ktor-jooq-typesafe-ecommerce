@@ -35,7 +35,7 @@ class CategoryControllerTest : FunSpec({
         test("should return 200") {
             testApplication {
                 val client = setup()
-                coEvery { categoryService.findAll() } returns (0..5).map { CategoryFaker.categoryTree() }
+                coEvery { categoryService.findAll() } returns (0..5).map { CategoryFaker.treeResponse() }
 
                 client.get("/categories").apply {
                     status shouldBe HttpStatusCode.OK
@@ -53,9 +53,9 @@ class CategoryControllerTest : FunSpec({
         test("should return 201") {
             testApplication {
                 val client = setup()
-            coEvery { categoryService.create(any()) } returns CategoryFaker.category()
+            coEvery { categoryService.create(any()) } returns CategoryFaker.response()
 
-            val payload = CategoryFaker.category()
+            val payload = CategoryFaker.createPayload()
             client.post("/categories") {
                 setJsonBody(payload)
             }.apply {
@@ -71,7 +71,7 @@ class CategoryControllerTest : FunSpec({
             testApplication {
                 val client = setup()
             val id = CategoryId()
-            coEvery { categoryService.deleteById(id) } returns CategoryFaker.category().copy(id = id)
+            coEvery { categoryService.deleteById(id) } returns CategoryFaker.response().copy(id = id)
 
             client.delete("/categories/${id.value}").apply {
                 status shouldBe HttpStatusCode.OK
@@ -100,7 +100,7 @@ class CategoryControllerTest : FunSpec({
             testApplication {
                 val client = setup()
             val id = CategoryId()
-            coEvery { categoryService.findById(id) } returns CategoryFaker.category().copy(id = id)
+            coEvery { categoryService.findById(id) } returns CategoryFaker.response().copy(id = id)
 
             client.get("/categories/${id.value}").apply {
                 status shouldBe HttpStatusCode.OK
@@ -129,8 +129,8 @@ class CategoryControllerTest : FunSpec({
             testApplication {
                 val client = setup()
             val id = CategoryId()
-            val payload = CategoryFaker.category().copy(id = id)
-            coEvery { categoryService.updateById(id, payload) } returns CategoryFaker.category().copy(id = id)
+            val payload = CategoryFaker.createPayload()
+            coEvery { categoryService.updateById(id, any()) } returns CategoryFaker.response().copy(id = id)
 
             client.post("/categories/${id.value}") {
                 setJsonBody(payload)
@@ -139,15 +139,15 @@ class CategoryControllerTest : FunSpec({
                 bodyAsText().shouldNotBeEmpty()
             }
 
-            coVerify { categoryService.updateById(id, payload) }
+            coVerify { categoryService.updateById(id, any()) }
         }}
 
         test("should return 404") {
             testApplication {
                 val client = setup()
             val id = CategoryId()
-            val payload = CategoryFaker.category().copy(id = id)
-            coEvery { categoryService.updateById(id, payload) } returns null
+            val payload = CategoryFaker.createPayload()
+            coEvery { categoryService.updateById(id, any()) } returns null
 
             client.post("/categories/${id.value}") {
                 setJsonBody(payload)
@@ -155,7 +155,7 @@ class CategoryControllerTest : FunSpec({
                 status shouldBe HttpStatusCode.NotFound
             }
 
-            coVerify { categoryService.updateById(id, payload) }
+            coVerify { categoryService.updateById(id, any()) }
         }}
     }
 })

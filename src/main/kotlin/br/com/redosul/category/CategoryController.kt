@@ -1,5 +1,6 @@
 package br.com.redosul.category
 
+import br.com.redosul.plugins.Undefined
 import io.ktor.http.HttpStatusCode
 import io.ktor.resources.Resource
 import io.ktor.server.application.Application
@@ -43,16 +44,17 @@ fun Application.categoryRoutes(service: CategoryService) {
         }
 
         post<CategoryResource> {_ ->
-            val payload = call.receive<CategoryDto>()
+            val payload = call.receive<CategoryCreatePayload>()
             service.create(payload).let{
                 call.response.status(HttpStatusCode.Created)
                 call.respond(it)
             }
         }
 
+        // TODO: use PATCH
         post<CategoryResource.Id> {resource ->
-            val payload = call.receive<CategoryDto>()
-            service.updateById(resource.id, payload)?.let {
+            val payload = call.receive<CategoryCreatePayload>()
+            service.updateById(resource.id, payload.toUpdatePayload())?.let {
                 call.respond(it)
             }
         }
@@ -64,5 +66,12 @@ fun Application.categoryRoutes(service: CategoryService) {
         }
     }
 }
+
+private fun CategoryCreatePayload.toUpdatePayload() = CategoryUpdatePayload(
+    parentId = Undefined.Defined(parentId),
+    name = Undefined.Defined(name),
+    slug = Undefined.Defined(slug),
+    description = Undefined.Defined(description),
+)
 
 
