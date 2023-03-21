@@ -10,6 +10,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.ApplicationTestBuilder
@@ -129,37 +130,21 @@ class CategoryControllerTest : FunSpec({
         }
     }
 
-    context("POST /categories/:id") {
+    context("PUT /categories") {
         test("should return 200") {
             testApplication {
                 val client = setup()
                 val fake = CategoryFaker.createPayload()
-                coEvery { categoryService.updateBySlug(fake.slug, any()) } returns Unit
+                coEvery { categoryService.createOrUpdate(any()) } returns Unit
 
-                client.post("/categories/${fake.slug.slug}") {
+                client.put("/categories") {
                     setJsonBody(fake)
                 }.apply {
                     status shouldBe HttpStatusCode.NoContent
                     bodyAsText().shouldNotBeEmpty()
                 }
 
-                coVerify { categoryService.updateBySlug(fake.slug, any()) }
-            }
-        }
-
-        test("should return 404") {
-            testApplication {
-                val client = setup()
-                val fake = CategoryFaker.createPayload()
-                coEvery { categoryService.updateBySlug(fake.slug, any()) } returns null
-
-                client.post("/categories/${fake.slug.slug}") {
-                    setJsonBody(fake)
-                }.apply {
-                    status shouldBe HttpStatusCode.NotFound
-                }
-
-                coVerify { categoryService.updateBySlug(fake.slug, any()) }
+                coVerify { categoryService.createOrUpdate(fake) }
             }
         }
     }

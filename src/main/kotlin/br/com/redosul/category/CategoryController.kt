@@ -16,15 +16,15 @@ import org.jooq.impl.*
 
 @Resource("/categories")
 /*
- * GET - List: () -> CategoryTreeDto
- * POST - Create: CategoryDto -> CategoryDto
+ * GET    - List: () -> CategoryResponseTree
+ * POST   - Create: CategoryCreatePayload -> Unit
+ * PUT    - Create/Update: CategoryCreatePayload -> Unit
  */
 class CategoryResource {
     @Resource("{slug}")
     /*
-     * GET - Find by id: CategoryId -> CategoryDto
-     * POST - Update: (CategoryId, CategoryDto) -> CategoryDto
-     * DELETE - Delete: CategoryId -> CategoryDto
+     * GET    - Find by id: CategoryId -> CategoryResponse
+     * DELETE - Delete: CategoryId -> Unit?
      */
     class Id(val parent: CategoryResource, val slug: CategorySlug)
 }
@@ -51,10 +51,9 @@ fun Application.categoryRoutes(service: CategoryService) {
             }
         }
 
-        // TODO: use PATCH
-        post<CategoryResource.Id> {resource ->
+        put<CategoryResource> {_ ->
             val payload = call.receive<CategoryCreatePayload>()
-            service.updateBySlug(resource.slug, payload.toUpdatePayload())?.let {
+            service.createOrUpdate(payload).let {
                 call.response.status(HttpStatusCode.NoContent)
                 call.respond(it)
             }
@@ -68,12 +67,5 @@ fun Application.categoryRoutes(service: CategoryService) {
         }
     }
 }
-
-private fun CategoryCreatePayload.toUpdatePayload() = CategoryUpdatePayload(
-    parentSlug = Undefined.Defined(parentSlug),
-    name = Undefined.Defined(name),
-    slug = Undefined.Defined(slug),
-    description = Undefined.Defined(description),
-)
 
 

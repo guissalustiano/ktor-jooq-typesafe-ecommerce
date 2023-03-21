@@ -121,6 +121,25 @@ class CategoryServiceTest : FunSpec({
         }
     }
 
+    context(CategoryService::createOrUpdate) {
+        test("should create if not exists") {
+            val fake = CategoryFaker.createPayload()
+
+            categoryService.createOrUpdate(fake)
+
+            categoryService.findBySlug(fake.slug) shouldNotBe null
+        }
+
+        test("should update if exists") {
+            val fake = CategoryFaker.createPayload().also { categoryService.create(it) }
+            val newName = CategoryFaker.response().name
+
+            categoryService.createOrUpdate(fake.copy(name = newName))
+
+            categoryService.findBySlug(fake.slug)?.name shouldBe newName
+        }
+    }
+
     context(CategoryService::deleteBySlug) {
         test("should delete a category") {
             val fake = CategoryFaker.createPayload().also { categoryService.create(it) }

@@ -4,6 +4,7 @@ import br.com.redosul.generated.tables.records.CategoryRecord
 import br.com.redosul.generated.tables.references.CATEGORY
 import br.com.redosul.plugins.Id
 import br.com.redosul.plugins.UUID
+import br.com.redosul.plugins.Undefined
 import br.com.redosul.plugins.await
 import br.com.redosul.plugins.map
 import br.com.redosul.plugins.map
@@ -98,6 +99,19 @@ class CategoryService(private val dsl: DSLContext) {
         }
 
         return updatedSlug?.let { }
+    }
+
+    suspend fun createOrUpdate(payload: CategoryCreatePayload): Unit {
+        if (findBySlug(payload.slug) == null) {
+            create(payload)
+        } else {
+            updateBySlug(payload.slug, CategoryUpdatePayload(
+                Undefined.Defined(payload.parentSlug),
+                Undefined.Defined(payload.name),
+                Undefined.Defined(payload.slug),
+                Undefined.Defined(payload.description),
+            ))
+        }
     }
 
     suspend fun deleteBySlug(slugId: CategorySlug) : Unit? {
