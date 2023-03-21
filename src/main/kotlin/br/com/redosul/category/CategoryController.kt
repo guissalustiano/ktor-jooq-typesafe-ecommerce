@@ -23,8 +23,8 @@ import org.jooq.impl.*
 class CategoryResource {
     @Resource("{slug}")
     /*
-     * GET    - Find by id: CategoryId -> CategoryResponse
-     * DELETE - Delete: CategoryId -> Unit?
+     * GET    - Find by id: CategorySlug -> CategoryResponse
+     * DELETE - Delete: CategorySlug -> Unit?
      */
     class Id(val parent: CategoryResource, val slug: CategorySlug)
 }

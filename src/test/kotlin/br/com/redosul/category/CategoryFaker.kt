@@ -13,7 +13,6 @@ object CategoryFaker {
         )
 
         val response = CategoryResponse(
-            id = CategoryId(),
             parentSlug = null,
             name = "Test",
             slug = "test".toCategorySlug(),
@@ -29,7 +28,6 @@ object CategoryFaker {
     )
 
     fun response() = CategoryResponse(
-        id = CategoryId(),
         parentSlug = null,
         name = faker.team().name(),
         slug = faker.team().name().toCategorySlug(),

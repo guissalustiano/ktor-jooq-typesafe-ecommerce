@@ -69,10 +69,19 @@ class CategoryServiceTest : FunSpec({
                 categoryService.create(fake)
             }
         }
+
+        test("should throw an exception when cyclic dependency on create") {
+            val fake = CategoryFaker.createPayload().let { it.copy(parentSlug = it.slug) }
+
+            // Throws Category Not Found, what's makes sense
+            shouldThrow<CategoryError> {
+                categoryService.create(fake)
+            }
+        }
     }
 
     context(CategoryService::updateBySlug) {
-        test("should update a category") {
+        test("should update a category all fields") {
             val fakeParent = CategoryFaker.Default.createPayload.also { categoryService.createOrUpdate(it) }
             val otherFakeParent = CategoryFaker.createPayload().also { categoryService.create(it) }
             val fake = CategoryFaker.createPayload().copy(parentSlug = fakeParent.slug).also { categoryService.create(it) }
@@ -91,6 +100,22 @@ class CategoryServiceTest : FunSpec({
                 name shouldBe newName
                 slug shouldBe newName.toCategorySlug()
                 parentSlug shouldBe otherFakeParent.slug
+            }
+        }
+        test("should update a category one field") {
+            val fake = CategoryFaker.createPayload().also { categoryService.create(it) }
+
+            val newName = CategoryFaker.response().name
+            val update = CategoryUpdatePayload(
+                name = Undefined.Defined(newName),
+            )
+            categoryService.updateBySlug(fake.slug, update)
+
+            categoryService.findBySlug(fake.slug).run{
+                this shouldNotBe null; this!!
+                name shouldBe newName
+                slug shouldBe fake.slug
+                parentSlug shouldBe fake.parentSlug
             }
         }
 
@@ -115,7 +140,19 @@ class CategoryServiceTest : FunSpec({
                 slug = Undefined.Defined(otherFake.slug)
             )
 
-            shouldThrow<CategoryError.SlugAlreadyExists> {
+            shouldThrow<CategoryError> {
+                categoryService.updateBySlug(fake.slug, update)
+            }
+        }
+
+        test("should throw an exception when cyclic dependency on update") {
+            val fake = CategoryFaker.Default.createPayload.also { categoryService.createOrUpdate(it) }
+
+            val update = CategoryUpdatePayload(
+                parentSlug = Undefined.Defined(fake.slug)
+            )
+
+            shouldThrow<CategoryError.CyclicReference> {
                 categoryService.updateBySlug(fake.slug, update)
             }
         }

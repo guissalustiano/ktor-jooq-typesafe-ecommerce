@@ -1,12 +1,8 @@
 package br.com.redosul.category
 
-import br.com.redosul.generated.tables.records.CategoryRecord
 import br.com.redosul.generated.tables.references.CATEGORY
-import br.com.redosul.plugins.Id
-import br.com.redosul.plugins.UUID
 import br.com.redosul.plugins.Undefined
 import br.com.redosul.plugins.await
-import br.com.redosul.plugins.map
 import br.com.redosul.plugins.map
 import br.com.redosul.plugins.toKotlinInstant
 import kotlinx.coroutines.reactive.awaitFirst
@@ -14,7 +10,6 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.Record1
-import org.jooq.TableField
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.OffsetDateTime
 
@@ -30,16 +25,19 @@ class CategoryService(private val dsl: DSLContext) {
     }
 
     suspend fun findBySlug(slugId: CategorySlug) : CategoryResponse? {
+        return rawFindBySlug(slugId) ?.map{ r -> r.toCategoryDto() }
+    }
+
+    private suspend fun rawFindBySlug(slugId: CategorySlug) : Record? {
         return dsl.select(CATEGORY.asterisk(), PARENT_CATEGORY.SLUG).from(CATEGORY)
             .leftJoin(PARENT_CATEGORY).on(CATEGORY.PARENT_ID.eq(PARENT_CATEGORY.ID))
             .where(CATEGORY.SLUG.eq(slugId.slug))
             .awaitFirstOrNull()
-            ?.map{ r -> r.toCategoryDto() }
     }
 
     suspend fun create(payload: CategoryCreatePayload): Unit {
         val payloadParent = payload.parentSlug?.let {
-            findBySlug(it) ?: throw CategoryError.ParentNotFound(it)
+            rawFindBySlug(it)?.into(CATEGORY)?: throw CategoryError.ParentNotFound(it)
         }
 
         findBySlug(payload.slug)?.let {
@@ -47,7 +45,7 @@ class CategoryService(private val dsl: DSLContext) {
         }
 
         val record = dsl.newRecord(CATEGORY).apply {
-            parentId = payloadParent?.id?.value
+            parentId = payloadParent?.id
             name = payload.name
             slug = payload.slug.slug
             description = payload.description
@@ -68,8 +66,10 @@ class CategoryService(private val dsl: DSLContext) {
 
     suspend fun updateBySlug(slugId: CategorySlug, payload: CategoryUpdatePayload): Unit? {
         val payloadParent = payload.parentSlug.map { parentSlug ->
+            if (parentSlug == slugId) throw CategoryError.CyclicReference(slugId)
+
             parentSlug?.let {
-                findBySlug(it) ?: throw CategoryError.ParentNotFound(it)
+                rawFindBySlug(it)?.into(CATEGORY) ?: throw CategoryError.ParentNotFound(it)
             }
         }
 
@@ -80,7 +80,7 @@ class CategoryService(private val dsl: DSLContext) {
         }
 
         val record = dsl.newRecord(CATEGORY).apply {
-            payloadParent.map { parentId = it?.id?.value }
+            payloadParent.map { parentId = it?.id }
             payload.name.map { name = it }
             payload.slug.map { slug = it.slug }
             payload.description.map { description = it }
@@ -135,7 +135,6 @@ class CategoryService(private val dsl: DSLContext) {
         val category = into(CATEGORY)
         val parent = into(PARENT_CATEGORY)
         return CategoryResponse(
-            CategoryId(category.id!!),
             parent.slug?.toCategorySlug(),
             category.name!!,
             category.slug!!.toCategorySlug(),
@@ -151,7 +150,6 @@ private fun getChildren(parentSlug: CategorySlug?, plain: List<CategoryResponse>
         it.parentSlug == parentSlug
     }.map {
         CategoryTreeResponse(
-            it.id,
             it.name,
             it.slug,
             it.description,

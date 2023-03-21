@@ -27,13 +27,7 @@ data class CategoryCreatePayload(
     val name: String,
     val slug: CategorySlug = name.toCategorySlug(),
     val description: String = "",
-){
-    init {
-        if (slug == parentSlug) {
-            throw CategoryError.CyclicReference(slug)
-        }
-    }
-}
+)
 
 @Serializable
 data class CategoryUpdatePayload(
@@ -41,19 +35,10 @@ data class CategoryUpdatePayload(
     val name: Undefined<String> = Undefined.None,
     val slug: Undefined<CategorySlug> = Undefined.None,
     val description: Undefined<String> = Undefined.None,
-){
-    init {
-        slug.map {
-            if (it == parentSlug.getOrNull()) {
-                throw CategoryError.CyclicReference(it)
-            }
-        }
-    }
-}
+)
 
 @Serializable
 data class CategoryResponse(
-    val id: CategoryId,
     val parentSlug: CategorySlug?,
     val name: String,
     val slug: CategorySlug,
@@ -70,7 +55,6 @@ data class CategoryResponse(
 
 @Serializable
 data class CategoryTreeResponse(
-    val id: CategoryId,
     val name: String,
     val slug: CategorySlug,
     val description: String,
