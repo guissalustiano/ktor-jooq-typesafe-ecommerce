@@ -2,8 +2,27 @@ package br.com.redosul.category
 
 import br.com.redosul.faker
 import br.com.redosul.past
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 object CategoryFaker {
+    object Default {
+        val createPayload = CategoryCreatePayload(
+            name = "Test",
+            description = "Long description for test",
+        )
+
+        val response = CategoryResponse(
+            id = CategoryId(),
+            parentSlug = null,
+            name = "Test",
+            slug = "test".toCategorySlug(),
+            description = "Long description for test",
+            createdAt = Clock.System.now(),
+            updatedAt = Clock.System.now(),
+        )
+    }
+
     fun createPayload() = CategoryCreatePayload(
         name = faker.team().name(),
         description = faker.lorem().sentence(),

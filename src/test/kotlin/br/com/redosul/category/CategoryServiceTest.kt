@@ -15,7 +15,7 @@ class CategoryServiceTest : FunSpec({
 
     context(CategoryService::findBySlug) {
         test("should return a category when found") {
-            val fake = CategoryFaker.createPayload().also { categoryService.create(it) }
+            val fake = CategoryFaker.Default.createPayload.also { categoryService.createOrUpdate(it) }
 
             val response = categoryService.findBySlug(fake.slug)
 
@@ -31,8 +31,8 @@ class CategoryServiceTest : FunSpec({
 
     context(CategoryService::findAll) {
         test("should a recursive tree of categories") {
-            val fakeParent = CategoryFaker.createPayload().also { categoryService.create(it) }
-            val fakeChild = CategoryFaker.createPayload().copy(parentSlug = fakeParent.slug).also { categoryService.create(it) }
+            val fakeParent = CategoryFaker.Default.createPayload.also { categoryService.createOrUpdate(it) }
+            val fakeChild = CategoryFaker.createPayload().copy(parentSlug = fakeParent.slug).also { categoryService.createOrUpdate(it) }
 
             val response = categoryService.findAll()
 
@@ -45,7 +45,7 @@ class CategoryServiceTest : FunSpec({
 
     context(CategoryService::create) {
         test("should create a category") {
-            val fakeParent = CategoryFaker.createPayload().also { categoryService.create(it) }
+            val fakeParent = CategoryFaker.Default.createPayload.also { categoryService.createOrUpdate(it) }
             val fakeChild = CategoryFaker.createPayload().copy(parentSlug = fakeParent.slug)
 
             categoryService.create(fakeChild)
@@ -73,7 +73,7 @@ class CategoryServiceTest : FunSpec({
 
     context(CategoryService::updateBySlug) {
         test("should update a category") {
-            val fakeParent = CategoryFaker.createPayload().also { categoryService.create(it) }
+            val fakeParent = CategoryFaker.Default.createPayload.also { categoryService.createOrUpdate(it) }
             val otherFakeParent = CategoryFaker.createPayload().also { categoryService.create(it) }
             val fake = CategoryFaker.createPayload().copy(parentSlug = fakeParent.slug).also { categoryService.create(it) }
 
@@ -95,7 +95,7 @@ class CategoryServiceTest : FunSpec({
         }
 
         test("should throw an exception when parent not found on update") {
-            val fake = CategoryFaker.createPayload().also { categoryService.create(it) }
+            val fake = CategoryFaker.Default.createPayload.also { categoryService.createOrUpdate(it) }
             val newSlug = CategoryFaker.createPayload().slug
 
             val update = CategoryUpdatePayload(
@@ -108,7 +108,7 @@ class CategoryServiceTest : FunSpec({
         }
 
         test("should throw an exception when slug already exists on update") {
-            val fake = CategoryFaker.createPayload().also { categoryService.create(it) }
+            val fake = CategoryFaker.Default.createPayload.also { categoryService.createOrUpdate(it) }
             val otherFake = CategoryFaker.createPayload().also { categoryService.create(it) }
 
             val update = CategoryUpdatePayload(
