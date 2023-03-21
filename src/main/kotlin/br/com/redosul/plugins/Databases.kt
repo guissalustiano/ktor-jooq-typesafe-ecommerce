@@ -7,9 +7,12 @@ import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactoryOptions
 import kotlinx.coroutines.reactive.awaitSingle
 import org.jooq.DSLContext
+import org.jooq.InsertSetMoreStep
+import org.jooq.InsertSetStep
 import org.jooq.Record
 import org.jooq.ResultQuery
 import org.jooq.SQLDialect
+import org.jooq.TableField
 import org.jooq.conf.MappedSchema
 import org.jooq.conf.RenderMapping
 import org.jooq.conf.Settings

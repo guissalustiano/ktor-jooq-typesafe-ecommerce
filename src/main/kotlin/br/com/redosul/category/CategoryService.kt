@@ -2,6 +2,7 @@ package br.com.redosul.category
 
 import br.com.redosul.generated.tables.records.CategoryRecord
 import br.com.redosul.generated.tables.references.CATEGORY
+import br.com.redosul.plugins.Id
 import br.com.redosul.plugins.UUID
 import br.com.redosul.plugins.await
 import br.com.redosul.plugins.map
@@ -12,6 +13,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.Record1
+import org.jooq.TableField
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.OffsetDateTime
 
@@ -43,7 +45,7 @@ class CategoryService(private val dsl: DSLContext) {
             throw CategoryError.SlugAlreadyExists(payload.slug)
         }
 
-        val record = CategoryRecord().apply {
+        val record = dsl.newRecord(CATEGORY).apply {
             parentId = payloadParent?.id?.value
             name = payload.name
             slug = payload.slug.slug
@@ -76,7 +78,7 @@ class CategoryService(private val dsl: DSLContext) {
             }
         }
 
-        val record = CategoryRecord().apply {
+        val record = dsl.newRecord(CATEGORY).apply {
             payloadParent.map { parentId = it?.id?.value }
             payload.name.map { name = it }
             payload.slug.map { slug = it.slug }

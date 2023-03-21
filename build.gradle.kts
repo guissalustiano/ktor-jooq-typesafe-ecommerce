@@ -96,6 +96,15 @@ flyway {
     cleanDisabled = false
 }
 
+// https://github.com/etiennestuder/gradle-jooq-plugin#gradle-kotlin-dsl-3
+buildscript {
+    configurations["classpath"].resolutionStrategy.eachDependency {
+        if (requested.group == "org.jooq") {
+            useVersion("3.18.0")
+        }
+    }
+}
+
 jooq {
     version.set(jooq_version)
     configurations {
@@ -123,6 +132,8 @@ jooq {
                         isRecords = true
                         isFluentSetters = true
                         isRelations = true
+                        isImmutablePojos = true
+                        // isKotlinNotNullRecordAttributes = true
                     }
                     target.apply {
                         packageName = "br.com.redosul.generated"
