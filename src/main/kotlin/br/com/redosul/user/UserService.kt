@@ -7,8 +7,11 @@ import br.com.redosul.generated.tables.references.USER
 import br.com.redosul.plugins.Email
 import br.com.redosul.plugins.Name
 import br.com.redosul.plugins.Phone
+import br.com.redosul.plugins.Undefined
 import br.com.redosul.plugins.await
+import br.com.redosul.plugins.map
 import br.com.redosul.plugins.toKotlinInstant
+import br.com.redosul.plugins.toSlug
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
@@ -17,126 +20,152 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.OffsetDateTime
 
 class UserService(private val dsl: DSLContext) {
-    suspend fun findAll() : List<UserDto> {
+    suspend fun findAll() : List<UserResponse> {
         return dsl
             .select(USER.asterisk(), USER_PROPRIETIES.asterisk())
             .from(USER_PROPRIETIES).join(USER)
             .on(USER_PROPRIETIES.USER_ID.eq(USER.ID))
             .await()
-            .map{r -> r.toUserDto()}
+            .map{r -> r.toResponse()}
     }
 
-    suspend fun findById(id: UserId) : UserDto? {
+    suspend fun findBySlug(slugId: UserSlug) : UserResponse? {
+        return rawFindBySlug(slugId)?.map{ r -> r.toResponse() }
+    }
+
+    private suspend fun rawFindBySlug(slugId: UserSlug) : Record? {
         return dsl.select(USER.asterisk(), USER_PROPRIETIES.asterisk())
             .from(USER_PROPRIETIES).join(USER)
             .on(USER_PROPRIETIES.USER_ID.eq(USER.ID))
-            .where(USER_PROPRIETIES.ID.eq(id.value))
+            .where(USER.SLUG.eq(slugId.slug))
             .awaitFirstOrNull()
-            ?.map{ r -> r.toUserDto() }
     }
 
-    suspend fun create(payload: UserDto): UserDto {
+    suspend fun create(payload: UserCreatePayload): Unit {
+        val userRecord = dsl.newRecord(USER).apply {
+            email = payload.email.value
+        }
+
+        val userProprietiesRecord = dsl.newRecord(USER_PROPRIETIES).apply {
+            firstName = payload.name.first
+            lastName = payload.name.last
+            phone = payload.phone.value
+        }
+
         return dsl.transactionCoroutine {config ->
             val dsl = config.dsl()
             val user =  dsl.insertInto(USER)
-                .set(payload.toUserRecord())
-                .set(USER_PROPRIETIES.ID, payload.id.value)
-                .set(USER.UPDATED_AT, OffsetDateTime.now())
-                .set(USER.CREATED_AT, OffsetDateTime.now())
-                .returningResult(USER.asterisk())
+                .set(userRecord)
+                .returningResult(USER.ID)
                 .awaitFirst()
                 .into(USER)
 
 
             val userProprieties = dsl.insertInto(USER_PROPRIETIES)
-                .set(payload.toUserProprietiesRecord())
-                .set(USER_PROPRIETIES.ID, payload.id.value)
+                .set(userProprietiesRecord)
                 .set(USER_PROPRIETIES.USER_ID, user.id)
-                .set(USER_PROPRIETIES.UPDATED_AT, OffsetDateTime.now())
-                .set(USER_PROPRIETIES.CREATED_AT, OffsetDateTime.now())
-                .returningResult(USER_PROPRIETIES.asterisk())
+                .returningResult(USER_PROPRIETIES.ID)
                 .awaitFirst()
                 .into(USER_PROPRIETIES)
 
-            userToDto(user, userProprieties)
+            Unit
         }
     }
 
-    suspend fun updateById(id: UserId, payload: UserDto): UserDto? {
+    suspend fun updateById(slugId: UserSlug, payload: UserUpdatePayload): Unit? {
+        val userRecord = dsl.newRecord(USER)
+
+        val userProprietiesRecord = dsl.newRecord(USER_PROPRIETIES).apply {
+            payload.name.map {
+                firstName = it.first
+                lastName = it.last
+            }
+        }
+
+        val userId= rawFindBySlug(slugId)?.into(USER)?.id ?: return null
+
         return dsl.transactionCoroutine {config ->
             val dsl = config.dsl()
 
+            val user =  dsl.update(USER)
+                .set(USER.UPDATED_AT, OffsetDateTime.now())
+                .set(userRecord)
+                .where(USER.ID.eq(userId))
+                .returningResult(USER.asterisk())
+                .awaitFirstOrNull()
+                ?.into(USER)
+
+            user ?: return@transactionCoroutine null
+
             val userProprieties = dsl.update(USER_PROPRIETIES)
-                .set(payload.toUserProprietiesRecord())
+                .set(userProprietiesRecord)
                 .set(USER_PROPRIETIES.UPDATED_AT, OffsetDateTime.now())
-                .where(USER_PROPRIETIES.ID.eq(id.value))
+                .where(USER_PROPRIETIES.ID.eq(user.id))
                 .returningResult(USER_PROPRIETIES.asterisk())
                 .awaitFirstOrNull()
                 ?.into(USER_PROPRIETIES)
 
-            userProprieties ?: return@transactionCoroutine null
-
-            val user =  dsl.update(USER)
-                .set(payload.toUserRecord())
-                .set(USER.UPDATED_AT, OffsetDateTime.now())
-                .where(USER.ID.eq(userProprieties.userId))
-                .returningResult(USER.asterisk())
-                .awaitFirstOrNull()
-                ?.into(USER)!!
-
-
-            userToDto(user, userProprieties)
+            Unit
         }
     }
 
-    suspend fun deleteById(id: UserId) : UserDto? {
+    suspend fun deleteById(slugId: UserSlug) : UserResponse? {
+        val userId = rawFindBySlug(slugId)?.into(USER)?.id ?: return null
+
         return dsl.transactionCoroutine {config ->
             val dsl = config.dsl()
 
             val userProprieties = dsl.deleteFrom(USER_PROPRIETIES)
-                .where(USER_PROPRIETIES.ID.eq(id.value))
+                .where(USER_PROPRIETIES.ID.eq(userId))
                 .returningResult(USER_PROPRIETIES.asterisk())
-                .awaitFirstOrNull()
-                ?.into(USER_PROPRIETIES)
-
-
-            userProprieties ?: return@transactionCoroutine null
+                .awaitFirst()
+                ?.into(USER_PROPRIETIES)!!
 
             val user =  dsl.deleteFrom(USER)
-                .where(USER.ID.eq(userProprieties.userId))
+                .where(USER.ID.eq(userId))
                 .returningResult(USER.asterisk())
-                .awaitFirstOrNull()
+                .awaitFirst()
                 ?.into(USER)!!
 
 
-            userToDto(user, userProprieties)
+            userToResponse(user, userProprieties)
         }
     }
+
+    suspend fun createOrUpdate(payload: UserCreatePayload): Unit {
+        val user = findBySlug(payload.slug)
+
+        if (user == null) {
+            create(payload)
+        } else {
+            val updatePayload = UserUpdatePayload(
+                Undefined.Defined(payload.name),
+                Undefined.Defined(payload.phone),
+            )
+            updateById(payload.slug, updatePayload)
+            findBySlug(payload.slug)!!
+        }
+    }
+
 }
 
-private fun UserDto.toUserProprietiesRecord() = UserProprietiesRecord().also {
-    it.firstName = name.first
-    it.lastName = name.last
-    it.phone = phone.value
-}
-
-private fun UserDto.toUserRecord() = UserRecord().also {
-    it.email = email.value
-}
-
-
-private fun userToDto(user: UserRecord, userProprieties: UserProprietiesRecord) = UserDto(
-    UserId(userProprieties.id!!),
+private fun userToResponse(user: UserRecord, userProprieties: UserProprietiesRecord) = UserResponse(
+    UserSlug(user.slug!!.toSlug()),
     Email(user.email!!),
     Name(userProprieties.firstName!!, userProprieties.lastName!!),
     Phone(userProprieties.phone!!),
-    userProprieties.createdAt?.toKotlinInstant(),
-    userProprieties.updatedAt?.toKotlinInstant(),
+    userProprieties.createdAt!!.toKotlinInstant(),
+    userProprieties.updatedAt!!.toKotlinInstant(),
 )
 
-private fun Record.toUserDto(): UserDto {
+private fun Record.toUser(): Pair<UserRecord, UserProprietiesRecord> {
     val user = this.into(USER)
     val userProprieties = this.into(USER_PROPRIETIES)
 
-    return userToDto(user, userProprieties)
+    return Pair(user, userProprieties)
+}
+
+private fun Record.toResponse(): UserResponse {
+    val (user, userProprieties) = this.toUser()
+    return userToResponse(user, userProprieties)
 }

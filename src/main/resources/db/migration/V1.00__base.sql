@@ -7,7 +7,9 @@ create table category(
 
     name text not null,
     slug text not null unique, -- domain key
-    description text not null default ''
+    description text not null default '',
+
+    check (id <> parent_id)
 );
 
 create table product(
@@ -67,6 +69,7 @@ create table "user"
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
 
+    slug text not null unique, -- domain key
     email text not null unique
 );
 

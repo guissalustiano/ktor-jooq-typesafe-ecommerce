@@ -14,9 +14,18 @@ import org.jooq.*
 import org.jooq.impl.*
 
 @Resource("/users")
+/*
+ * GET    - List: () -> UserResponse
+ * POST   - Create: UserCreatePayload -> Unit
+ * PUT    - Create/Update: UserCreatePayload -> Unit
+ */
 class UserResource {
     @Resource("{id}")
-    class Id(val parent: UserResource, val id: UserId)
+    /*
+     * GET    - Find by id: UserId -> UserResponse
+     * DELETE - Delete: UserId -> Unit?
+     */
+    class Id(val parent: UserResource, val slug: UserSlug)
 }
 
 fun Application.userRoutes(service: UserService) {
@@ -28,28 +37,28 @@ fun Application.userRoutes(service: UserService) {
         }
 
         get<UserResource.Id> { resource ->
-            service.findById(resource.id)?.let{
+            service.findBySlug(resource.slug)?.let{
                 call.respond(it)
             }
         }
 
         post<UserResource> { _ ->
-            val payload = call.receive<UserDto>()
+            val payload = call.receive<UserCreatePayload>()
             service.create(payload).let{
                 call.response.status(HttpStatusCode.Created)
                 call.respond(it)
             }
         }
 
-        post<UserResource.Id> { resource ->
-            val payload = call.receive<UserDto>()
-            service.updateById(resource.id, payload)?.let {
+        put<UserResource> { _ ->
+            val payload = call.receive<UserCreatePayload>()
+            service.createOrUpdate(payload).let {
                 call.respond(it)
             }
         }
 
         delete<UserResource.Id> { resource ->
-            service.deleteById(resource.id)?.let {
+            service.deleteById(resource.slug)?.let {
                 call.respond(it)
             }
         }
