@@ -20,6 +20,8 @@ value class UserId(override val value: UUID = UUID.randomUUID()): Id
 @Serializable
 value class UserSlug(override val value: Slug): SlugId
 
+fun String.toUserSlug() = UserSlug(toSlug())
+
 @Serializable
 data class UserCreatePayload(
     val email: Email,
@@ -30,8 +32,9 @@ data class UserCreatePayload(
 
 private fun Email.toSlug(): UserSlug {
     val emailPart = value
-        .replace("@", "-")
-        .replace(".", "_")
+        .replace("@", "")
+        .replace(".", "")
+        .replace("_", "")
 
     val randomPart = UUID.randomUUID().toString().substring(0, 5)
 

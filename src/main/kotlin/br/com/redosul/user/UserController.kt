@@ -20,7 +20,7 @@ import org.jooq.impl.*
  * PUT    - Create/Update: UserCreatePayload -> Unit
  */
 class UserResource {
-    @Resource("{id}")
+    @Resource("{slug}")
     /*
      * GET    - Find by id: UserId -> UserResponse
      * DELETE - Delete: UserId -> Unit?
@@ -53,12 +53,14 @@ fun Application.userRoutes(service: UserService) {
         put<UserResource> { _ ->
             val payload = call.receive<UserCreatePayload>()
             service.createOrUpdate(payload).let {
+                call.response.status(HttpStatusCode.NoContent)
                 call.respond(it)
             }
         }
 
         delete<UserResource.Id> { resource ->
-            service.deleteById(resource.slug)?.let {
+            service.deleteBySlug(resource.slug)?.let {
+                call.response.status(HttpStatusCode.NoContent)
                 call.respond(it)
             }
         }

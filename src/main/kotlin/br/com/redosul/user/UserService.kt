@@ -72,7 +72,7 @@ class UserService(private val dsl: DSLContext) {
         }
     }
 
-    suspend fun updateById(slugId: UserSlug, payload: UserUpdatePayload): Unit? {
+    suspend fun updateBySlug(slugId: UserSlug, payload: UserUpdatePayload): Unit? {
         val userRecord = dsl.newRecord(USER)
 
         val userProprietiesRecord = dsl.newRecord(USER_PROPRIETIES).apply {
@@ -109,7 +109,7 @@ class UserService(private val dsl: DSLContext) {
         }
     }
 
-    suspend fun deleteById(slugId: UserSlug) : UserResponse? {
+    suspend fun deleteBySlug(slugId: UserSlug) : Unit? {
         val userId = rawFindBySlug(slugId)?.into(USER)?.id ?: return null
 
         return dsl.transactionCoroutine {config ->
@@ -118,17 +118,16 @@ class UserService(private val dsl: DSLContext) {
             val userProprieties = dsl.deleteFrom(USER_PROPRIETIES)
                 .where(USER_PROPRIETIES.ID.eq(userId))
                 .returningResult(USER_PROPRIETIES.asterisk())
-                .awaitFirst()
+                .awaitFirstOrNull()
                 ?.into(USER_PROPRIETIES)!!
 
             val user =  dsl.deleteFrom(USER)
                 .where(USER.ID.eq(userId))
                 .returningResult(USER.asterisk())
-                .awaitFirst()
+                .awaitFirstOrNull()
                 ?.into(USER)!!
 
-
-            userToResponse(user, userProprieties)
+            Unit
         }
     }
 
@@ -142,7 +141,7 @@ class UserService(private val dsl: DSLContext) {
                 Undefined.Defined(payload.name),
                 Undefined.Defined(payload.phone),
             )
-            updateById(payload.slug, updatePayload)
+            updateBySlug(payload.slug, updatePayload)
             findBySlug(payload.slug)!!
         }
     }
