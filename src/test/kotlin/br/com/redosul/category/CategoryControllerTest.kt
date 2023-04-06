@@ -56,7 +56,7 @@ class CategoryControllerTest : FunSpec({
                 val client = setup()
                 coEvery { categoryService.create(any()) } returns Unit
 
-                val payload = CategoryFaker.createPayload()
+                val payload = CategoryFaker.Default.createPayload
                 client.post("/categories") {
                     setJsonBody(payload)
                 }.apply {
@@ -72,12 +72,11 @@ class CategoryControllerTest : FunSpec({
         test("should return 200") {
             testApplication {
                 val client = setup()
-                val slug = CategoryFaker.response().slug
+                val slug = CategoryFaker.Default.response.slug
                 coEvery { categoryService.deleteBySlug(slug) } returns Unit
 
                 client.delete("/categories/${slug.slug}").apply {
                     status shouldBe HttpStatusCode.NoContent
-                    bodyAsText().shouldNotBeEmpty()
                 }
 
                 coVerify { categoryService.deleteBySlug(slug) }
@@ -87,7 +86,7 @@ class CategoryControllerTest : FunSpec({
         test("should return 404 when not found") {
             testApplication {
                 val client = setup()
-                val slug = CategoryFaker.response().slug
+                val slug = CategoryFaker.Default.response.slug
                 coEvery { categoryService.deleteBySlug(slug) } returns null
 
                 client.delete("/categories/${slug.slug}").apply {
@@ -103,7 +102,7 @@ class CategoryControllerTest : FunSpec({
         test("should return 200") {
             testApplication {
                 val client = setup()
-                val fake = CategoryFaker.response()
+                val fake = CategoryFaker.Default.response
                 coEvery { categoryService.findBySlug(fake.slug) } returns fake
 
                 client.get("/categories/${fake.slug.slug}").apply {
@@ -118,7 +117,7 @@ class CategoryControllerTest : FunSpec({
         test("should return 404 when not found") {
             testApplication {
                 val client = setup()
-                val fake = CategoryFaker.response()
+                val fake = CategoryFaker.Default.response
                 coEvery { categoryService.findBySlug(fake.slug) } returns null
 
                 client.get("/categories/${fake.slug.slug}").apply {
@@ -134,14 +133,13 @@ class CategoryControllerTest : FunSpec({
         test("should return 200") {
             testApplication {
                 val client = setup()
-                val fake = CategoryFaker.createPayload()
+                val fake = CategoryFaker.Default.createPayload
                 coEvery { categoryService.createOrUpdate(any()) } returns Unit
 
                 client.put("/categories") {
                     setJsonBody(fake)
                 }.apply {
                     status shouldBe HttpStatusCode.NoContent
-                    bodyAsText().shouldNotBeEmpty()
                 }
 
                 coVerify { categoryService.createOrUpdate(fake) }
