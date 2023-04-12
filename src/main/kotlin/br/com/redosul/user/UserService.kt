@@ -1,5 +1,6 @@
 package br.com.redosul.user
 
+import br.com.redosul.category.CategoryError
 import br.com.redosul.generated.tables.records.UserRecord
 import br.com.redosul.generated.tables.records.UserProprietiesRecord
 import br.com.redosul.generated.tables.references.USER_PROPRIETIES
@@ -42,8 +43,13 @@ class UserService(private val dsl: DSLContext) {
     }
 
     suspend fun create(payload: UserCreatePayload): Unit {
+        findBySlug(payload.slug)?.let {
+            throw UserError.SlugAlreadyExists(payload.slug)
+        }
+
         val userRecord = dsl.newRecord(USER).apply {
             email = payload.email.value
+            slug = payload.slug.slug
         }
 
         val userProprietiesRecord = dsl.newRecord(USER_PROPRIETIES).apply {
@@ -80,6 +86,9 @@ class UserService(private val dsl: DSLContext) {
                 firstName = it.first
                 lastName = it.last
             }
+            payload.phone.map {
+                phone = it.value
+            }
         }
 
         val userId= rawFindBySlug(slugId)?.into(USER)?.id ?: return null
@@ -100,10 +109,12 @@ class UserService(private val dsl: DSLContext) {
             val userProprieties = dsl.update(USER_PROPRIETIES)
                 .set(userProprietiesRecord)
                 .set(USER_PROPRIETIES.UPDATED_AT, OffsetDateTime.now())
-                .where(USER_PROPRIETIES.ID.eq(user.id))
+                .where(USER_PROPRIETIES.USER_ID.eq(user.id))
                 .returningResult(USER_PROPRIETIES.asterisk())
                 .awaitFirstOrNull()
-                ?.into(USER_PROPRIETIES)
+                ?.into(USER_PROPRIETIES)!!
+
+            println(userProprieties)
 
             Unit
         }
@@ -116,7 +127,7 @@ class UserService(private val dsl: DSLContext) {
             val dsl = config.dsl()
 
             val userProprieties = dsl.deleteFrom(USER_PROPRIETIES)
-                .where(USER_PROPRIETIES.ID.eq(userId))
+                .where(USER_PROPRIETIES.USER_ID.eq(userId))
                 .returningResult(USER_PROPRIETIES.asterisk())
                 .awaitFirstOrNull()
                 ?.into(USER_PROPRIETIES)!!

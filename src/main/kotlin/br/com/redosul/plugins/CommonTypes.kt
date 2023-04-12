@@ -96,6 +96,6 @@ data class Name(val first: String, val last: String) {
 @Serializable
 value class Phone(val value: String) {
     init {
-        require(value.matches(Regex("\\+[0-9]{13,15}"))) { "Phone must be 13 or 15 digits with +" }
+        require(value.matches(Regex("\\+[0-9]{11,}"))) { "Phone must be 11 or 15 digits with +, got $value" }
     }
 }

@@ -1,5 +1,7 @@
 package br.com.redosul.user
 
+import br.com.redosul.faker
+import br.com.redosul.fullPhoneWithoutPunctuation
 import br.com.redosul.plugins.Email
 import br.com.redosul.plugins.Name
 import br.com.redosul.plugins.Phone
@@ -25,7 +27,11 @@ object UserFaker {
         )
     }
 
-    fun createPayload() = Default.createPayload
+    fun createPayload() = UserCreatePayload(
+        name = faker.name().let {  Name(it.firstName(), it.lastName()) },
+        email = Email(faker.internet().emailAddress()),
+        phone = Phone(faker.phoneNumber().fullPhoneWithoutPunctuation()),
+    )
 
     fun response() = Default.response
 }

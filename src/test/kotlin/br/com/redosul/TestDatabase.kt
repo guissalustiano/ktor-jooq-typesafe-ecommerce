@@ -12,8 +12,9 @@ private val <SELF : PostgreSQLContainer<SELF>?> PostgreSQLContainer<SELF>.r2dbcU
 
 private object TestDatabase {
     private val containerDb by lazy {
-        PostgreSQLContainer<Nothing>("postgres:15-alpine").apply {
+        PostgreSQLContainer<Nothing>("postgres:15").apply {
             startupAttempts = 1
+            withReuse(true)
 
             start()
 

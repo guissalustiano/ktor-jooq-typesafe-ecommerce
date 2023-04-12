@@ -1,5 +1,6 @@
 package br.com.redosul.user
 
+import br.com.redosul.category.CategorySlug
 import br.com.redosul.plugins.Email
 import br.com.redosul.plugins.Id
 import br.com.redosul.plugins.Name
@@ -56,3 +57,8 @@ data class UserResponse(
     val createdAt: Instant,
     val updatedAt: Instant,
 )
+
+// Errors
+sealed class UserError(message: String): Exception(message) {
+    class SlugAlreadyExists(slug: UserSlug): UserError("User with slug $slug already exists")
+}
