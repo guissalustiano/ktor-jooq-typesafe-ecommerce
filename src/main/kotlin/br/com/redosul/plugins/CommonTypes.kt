@@ -4,6 +4,7 @@ import br.com.redosul.order.OrderItemId
 import br.com.redosul.order.OrderPriceDto
 import br.com.redosul.order.OrderPriceDtoSerializer
 import br.com.redosul.order.OrderPriceItemDto
+import br.com.redosul.product.toProductImageSlug
 import com.google.i18n.phonenumbers.PhoneNumberUtil
 import com.google.i18n.phonenumbers.Phonenumber
 import kotlinx.datetime.Instant
@@ -82,10 +83,28 @@ inline fun <reified T> Undefined<T>.get(): T = getOrElse { throw Exception("Unde
 
 
 @JvmInline
-@Serializable
-value class URL(val value: String) {
-    init {
-        require(value.matches(Regex("https?://.+"))) { "URL must be http or https" }
+@Serializable(with = URLSerializer::class)
+value class URL private constructor(private val value: java.net.URL) {
+    fun unwrap() = value.toString()
+
+    val path: String get() = value.path
+
+    val lastPath get() = path.split("/").last()
+
+    constructor(value: String) : this(java.net.URL(value))
+}
+
+object URLSerializer: KSerializer<URL> {
+    private val delegateSerializer = String.Companion.serializer()
+    @OptIn(ExperimentalSerializationApi::class)
+    override val descriptor = SerialDescriptor("Phone", delegateSerializer.descriptor)
+
+    override fun serialize(encoder: Encoder, value: URL) {
+        encoder.encodeSerializableValue(delegateSerializer, value.unwrap())
+    }
+
+    override fun deserialize(decoder: Decoder): URL {
+        return URL(decoder.decodeSerializableValue(delegateSerializer))
     }
 }
 

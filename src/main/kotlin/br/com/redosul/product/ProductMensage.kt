@@ -1,11 +1,14 @@
 package br.com.redosul.product
 
-import br.com.redosul.category.CategoryId
+import br.com.redosul.category.CategorySlug
+import br.com.redosul.file.ImageCreatePayload
+import br.com.redosul.file.ImageResponse
+import br.com.redosul.file.MimeType
 import br.com.redosul.generated.enums.ClotheSize
-import br.com.redosul.plugins.Id
 import br.com.redosul.plugins.Slug
+import br.com.redosul.plugins.SlugId
 import br.com.redosul.plugins.URL
-import br.com.redosul.plugins.UUID
+import br.com.redosul.plugins.Undefined
 import br.com.redosul.plugins.toSlug
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -13,26 +16,44 @@ import kotlinx.serialization.Serializable
 
 @JvmInline
 @Serializable
-value class ProductId(override val value: UUID = UUID.randomUUID()): Id
+value class ProductSlug(override val value: Slug): SlugId
+fun String.toProductSlug() = ProductSlug(toSlug())
 
 @JvmInline
 @Serializable
-value class ProductVariantId(override val value: UUID = UUID.randomUUID()): Id
+value class ProductVariantSlug(override val value: Slug): SlugId
+fun String.toProductVariantSlug() = ProductVariantSlug(toSlug())
 
 
 @JvmInline
 @Serializable
-value class ProductImageId(override val value: UUID = UUID.randomUUID()): Id
+value class ProductImageSlug(override val value: Slug): SlugId
+fun String.toProductImageSlug() = ProductImageSlug(toSlug())
 
 @Serializable
-data class ProductDto(
-    val id: ProductId = ProductId(),
-    val categoryId: CategoryId,
+data class ProductCreatePayload(
+    val categorySlug: CategorySlug,
     val name: String,
-    val slug: Slug = name.toSlug(),
+    val slug: ProductSlug = name.toProductSlug(),
     val description: String = "",
-    val variants: List<ProductVariantDto>? = null,
-    val images: List<ProductImageDto> = emptyList(),
+)
+
+@Serializable
+data class ProductUpdatePayload(
+    val categorySlug: Undefined<CategorySlug> = Undefined.None,
+    val name: Undefined<String> = Undefined.None,
+    val slug: Undefined<ProductSlug> = Undefined.None,
+    val description: Undefined<String> = Undefined.None,
+)
+
+@Serializable
+data class ProductResponse(
+    val categorySlug: CategorySlug,
+    val name: String,
+    val slug: ProductSlug = name.toProductSlug(),
+    val description: String = "",
+    val variants: List<ProductVariantResponse>? = null,
+    val images: List<ProductImageResponse> = emptyList(),
 ) {
     init {
         variants?.isSameType()?.let { require(it) { "Variants must be the same type" } }
@@ -40,64 +61,125 @@ data class ProductDto(
 }
 
 @Serializable
-sealed class ProductVariantDto {
-    abstract val id: ProductVariantId
-    abstract val images: List<ProductImageDto>
+sealed class ProductVariantCreatePayload {
+    abstract val productSlug: ProductSlug
+    abstract val slug: ProductImageSlug
+    abstract val images: List<ProductImageCreatePayload>
 
     @Serializable
-    sealed class Color: ProductVariantDto() {
+    sealed class Color: ProductVariantCreatePayload() {
         abstract val name: String
             @Serializable
             @SerialName("RGB")
             data class RGB(
-                override val id: ProductVariantId = ProductVariantId(),
+                override val productSlug: ProductSlug,
+                override val slug: ProductImageSlug,
                 override val name: String = "",
                 val red: UByte,
                 val green: UByte,
                 val blue: UByte,
-                override val images: List<ProductImageDto> = emptyList(),
+                override val images: List<ProductImageCreatePayload> = emptyList(),
             ): Color()
 
             @Serializable
             @SerialName("Image")
             data class Image(
-                override val id: ProductVariantId = ProductVariantId(),
+                override val productSlug: ProductSlug,
+                override val slug: ProductImageSlug,
                 override val name: String = "",
                 val url: String,
-                override val images: List<ProductImageDto> = emptyList(),
+                override val images: List<ProductImageCreatePayload> = emptyList(),
             ): Color()
         }
 
     @Serializable
     @SerialName("Size")
     data class Size(
-        override val id: ProductVariantId = ProductVariantId(),
+        override val productSlug: ProductSlug,
+        override val slug: ProductImageSlug,
         val value: ClotheSize,
-        override val images: List<ProductImageDto> = emptyList(),
-    ): ProductVariantDto()
+        override val images: List<ProductImageCreatePayload> = emptyList(),
+    ): ProductVariantCreatePayload()
 
     @Serializable
     @SerialName("ColorSize")
     data class ColorSize(
-        override val id: ProductVariantId = ProductVariantId(),
+        override val productSlug: ProductSlug,
+        override val slug: ProductImageSlug,
         val size: Size,
         val color: Color,
-        override val images: List<ProductImageDto> = emptyList(),
-    ): ProductVariantDto()
+        override val images: List<ProductImageCreatePayload> = emptyList(),
+    ): ProductVariantCreatePayload()
 }
 
 @Serializable
-data class ProductImageDto(
-    val id: ProductImageId = ProductImageId(),
-    val url: URL,
-    val alt: String = "",
-)
+sealed class ProductVariantResponse {
+    abstract val slug: ProductImageSlug
+    abstract val images: List<ProductImageResponse>
 
-private fun List<ProductVariantDto>.isSameType(): Boolean {
+    @Serializable
+    sealed class Color: ProductVariantResponse() {
+        abstract val name: String
+            @Serializable
+            @SerialName("RGB")
+            data class RGB(
+                override val slug: ProductImageSlug,
+                override val name: String = "",
+                val red: UByte,
+                val green: UByte,
+                val blue: UByte,
+                override val images: List<ProductImageResponse> = emptyList(),
+            ): Color()
+
+            @Serializable
+            @SerialName("Image")
+            data class Image(
+                override val slug: ProductImageSlug,
+                override val name: String = "",
+                val url: String,
+                override val images: List<ProductImageResponse> = emptyList(),
+            ): Color()
+        }
+
+    @Serializable
+    @SerialName("Size")
+    data class Size(
+        override val slug: ProductImageSlug,
+        val value: ClotheSize,
+        override val images: List<ProductImageResponse> = emptyList(),
+    ): ProductVariantResponse()
+
+    @Serializable
+    @SerialName("ColorSize")
+    data class ColorSize(
+        override val slug: ProductImageSlug,
+        val size: Size,
+        val color: Color,
+        override val images: List<ProductImageResponse> = emptyList(),
+    ): ProductVariantResponse()
+}
+
+@Serializable
+data class ProductImageCreatePayload(
+    val productSlug: ProductSlug,
+    override val slug: ProductImageSlug,
+    override val mimeType: MimeType,
+    override val alt: String = "",
+): ImageCreatePayload
+
+@Serializable
+data class ProductImageResponse(
+    override val url: URL,
+    override val alt: String = "",
+): ImageResponse {
+    val slug get() = url.lastPath.toProductImageSlug()
+}
+
+private fun List<ProductVariantResponse>.isSameType(): Boolean {
     val first = firstOrNull() ?: return true
     return when(first) {
-        is ProductVariantDto.Size -> all { it is ProductVariantDto.Size }
-        is ProductVariantDto.ColorSize -> all { it is ProductVariantDto.ColorSize }
-        is ProductVariantDto.Color -> all { it is ProductVariantDto.Color }
+        is ProductVariantResponse.Size -> all { it is ProductVariantResponse.Size }
+        is ProductVariantResponse.ColorSize -> all { it is ProductVariantResponse.ColorSize }
+        is ProductVariantResponse.Color -> all { it is ProductVariantResponse.Color }
     }
 }

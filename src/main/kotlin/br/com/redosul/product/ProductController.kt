@@ -12,8 +12,20 @@ import io.ktor.server.routing.routing
 
 @Resource("/products")
 class ProductsResource(val categoryId: CategoryId? = null) {
-    @Resource("{id}")
-    class Id(val parent: ProductsResource = ProductsResource(), val id: ProductId)
+    @Resource("{slug}")
+    class Id(val parent: ProductsResource = ProductsResource(), val slug: ProductSlug)
+
+    @Resource("variants")
+    class Variants(val parent: ProductsResource = ProductsResource()) {
+        @Resource("{slug}")
+        class Id(val parent: Variants = Variants(), val slug: ProductVariantSlug)
+    }
+
+    @Resource("images")
+    class Images(val parent: ProductsResource = ProductsResource()) {
+        @Resource("{slug}")
+        class Id(val parent: Images = Images(), val slug: ProductImageSlug)
+    }
 }
 
 fun Application.productRoutes(service: ProductService) {
@@ -25,28 +37,76 @@ fun Application.productRoutes(service: ProductService) {
         }
 
         get<ProductsResource.Id> { resource ->
-            service.findById(resource.id)?.let {
+            service.findBySlug(resource.slug)?.let {
                 call.respond(it)
             }
         }
 
         post<ProductsResource> {_ ->
-            val payload = call.receive<ProductDto>()
+            val payload = call.receive<ProductCreatePayload>()
             service.create(payload).let {
                 call.response.status(HttpStatusCode.Created)
                 call.respond(it)
             }
         }
 
-        post<ProductsResource.Id> {resource ->
-            val payload = call.receive<ProductDto>()
-            service.updateById(resource.id, payload)?.let {
+        post<ProductsResource.Variants> {_ ->
+            val payload = call.receive<ProductVariantCreatePayload>()
+            service.create(payload).let {
+                call.response.status(HttpStatusCode.Created)
+                call.respond(it)
+            }
+        }
+
+        post<ProductsResource.Images> {_ ->
+            val payload = call.receive<ProductImageCreatePayload>()
+            service.create(payload).let {
+                call.response.status(HttpStatusCode.Created)
+                call.respond(it)
+            }
+        }
+
+        put<ProductsResource> {resource ->
+            val payload = call.receive<ProductCreatePayload>()
+            service.createOrUpdate(payload)?.let {
+                call.response.status(HttpStatusCode.NoContent)
+                call.respond(it)
+            }
+        }
+
+        put<ProductsResource.Variants> {resource ->
+            val payload = call.receive<ProductVariantCreatePayload>()
+            service.createOrUpdate(payload)?.let {
+                call.response.status(HttpStatusCode.NoContent)
+                call.respond(it)
+            }
+        }
+
+        put<ProductsResource.Images> {resource ->
+            val payload = call.receive<ProductImageCreatePayload>()
+            service.createOrUpdate(payload)?.let {
+                call.response.status(HttpStatusCode.NoContent)
                 call.respond(it)
             }
         }
 
         delete<ProductsResource.Id> {resource ->
-            service.deleteById(resource.id)?.let {
+            service.deleteBySlug(resource.slug)?.let {
+                call.response.status(HttpStatusCode.NoContent)
+                call.respond(it)
+            }
+        }
+
+        delete<ProductsResource.Variants.Id> {resource ->
+            service.deleteBySlug(resource.slug)?.let {
+                call.response.status(HttpStatusCode.NoContent)
+                call.respond(it)
+            }
+        }
+
+        delete<ProductsResource.Images.Id> {resource ->
+            service.deleteBySlug(resource.slug)?.let {
+                call.response.status(HttpStatusCode.NoContent)
                 call.respond(it)
             }
         }

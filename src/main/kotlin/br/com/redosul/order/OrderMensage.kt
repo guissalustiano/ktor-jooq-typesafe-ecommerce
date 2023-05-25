@@ -3,11 +3,10 @@ package br.com.redosul.order
 import br.com.redosul.category.CategoryId
 import br.com.redosul.generated.enums.OrderStatus
 import br.com.redosul.plugins.Id
-import br.com.redosul.plugins.Slug
 import br.com.redosul.plugins.UUID
-import br.com.redosul.product.ProductId
-import br.com.redosul.product.ProductImageDto
-import br.com.redosul.product.ProductVariantDto
+import br.com.redosul.product.ProductImageResponse
+import br.com.redosul.product.ProductSlug
+import br.com.redosul.product.ProductVariantResponse
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.MapSerializer
@@ -71,13 +70,13 @@ value class OrderItemId(override val value: UUID = UUID.randomUUID()): Id
 
 @Serializable
 data class OrderItemCreateDto(
-    val productId: ProductId,
+    val productSlug: ProductSlug,
     val quantity: Int,
 )
 
 @Serializable
 data class OrderPriceItemDto(
-    val productId: ProductId,
+    val productSlug: ProductSlug,
     val price: Double,
 )
 
@@ -102,11 +101,10 @@ object OrderPriceDtoSerializer: KSerializer<OrderPriceDto> {
 
 @Serializable
 data class ProductOneVariantDto(
-    val id: ProductId,
     val categoryId: CategoryId,
     val name: String,
-    val slug: Slug,
+    val slug: ProductSlug,
     val description: String,
-    val variants: ProductVariantDto,
-    val images: List<ProductImageDto> = emptyList(),
+    val variants: ProductVariantResponse,
+    val images: List<ProductImageResponse> = emptyList(),
 )
