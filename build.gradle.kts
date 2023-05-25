@@ -15,6 +15,7 @@ val kotlinx_datetime_version: String by project
 val mockk_version: String by project
 val faker_version: String by project
 val testcontainer_postgres_version: String by project
+val libphonenumber_version: String by project
 
 plugins {
     kotlin("jvm") version "1.8.10"
@@ -60,6 +61,7 @@ dependencies {
     implementation("io.r2dbc:r2dbc-pool:$r2dbc_pool_version")
     implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+    implementation("com.googlecode.libphonenumber:libphonenumber:$libphonenumber_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlin_version")
     testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
     testImplementation("io.kotest:kotest-property:$kotest_version")

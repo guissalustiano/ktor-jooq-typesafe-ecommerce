@@ -1,8 +1,23 @@
 package br.com.redosul.plugins
 
+import br.com.redosul.order.OrderItemId
+import br.com.redosul.order.OrderPriceDto
+import br.com.redosul.order.OrderPriceDtoSerializer
+import br.com.redosul.order.OrderPriceItemDto
+import com.google.i18n.phonenumbers.PhoneNumberUtil
+import com.google.i18n.phonenumbers.Phonenumber
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toKotlinInstant
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import java.time.OffsetDateTime
 
 
@@ -93,9 +108,25 @@ data class Name(val first: String, val last: String) {
 }
 
 @JvmInline
-@Serializable
-value class Phone(val value: String) {
-    init {
-        require(value.matches(Regex("\\+[0-9]{11,}"))) { "Phone must be 11 or 15 digits with +, got $value" }
+@Serializable(with = PhoneSerializer::class)
+value class Phone private constructor(private val value: Phonenumber.PhoneNumber) {
+    fun unwrap(): String = phoneNumberUtil.format(value, PhoneNumberUtil.PhoneNumberFormat.E164)
+
+    constructor(phone: String) : this(phoneNumberUtil.parse(phone, null))
+
+    companion object {
+        private val phoneNumberUtil = PhoneNumberUtil.getInstance()
+    }
+}
+
+object PhoneSerializer: KSerializer<Phone> {
+    override val descriptor = PrimitiveSerialDescriptor("Phone", PrimitiveKind.STRING)
+
+    override fun serialize(encoder: Encoder, value: Phone) {
+        encoder.encodeString(value.unwrap())
+    }
+
+    override fun deserialize(decoder: Decoder): Phone {
+        return Phone(decoder.decodeString())
     }
 }

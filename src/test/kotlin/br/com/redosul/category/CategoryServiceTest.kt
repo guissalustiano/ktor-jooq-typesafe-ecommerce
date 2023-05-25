@@ -31,7 +31,7 @@ class CategoryServiceTest : FunSpec({
 
     context(CategoryService::findAll) {
         test("should a recursive tree of categories") {
-            val fakeParent = CategoryFaker.Default.createPayload.also { categoryService.createOrUpdate(it) }
+            val fakeParent = CategoryFaker.createPayload().also { categoryService.createOrUpdate(it) }
             val fakeChild = CategoryFaker.createPayload().copy(parentSlug = fakeParent.slug).also { categoryService.createOrUpdate(it) }
 
             val response = categoryService.findAll()

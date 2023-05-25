@@ -55,7 +55,7 @@ class UserService(private val dsl: DSLContext) {
         val userProprietiesRecord = dsl.newRecord(USER_PROPRIETIES).apply {
             firstName = payload.name.first
             lastName = payload.name.last
-            phone = payload.phone.value
+            phone = payload.phone.unwrap()
         }
 
         return dsl.transactionCoroutine {config ->
@@ -87,7 +87,7 @@ class UserService(private val dsl: DSLContext) {
                 lastName = it.last
             }
             payload.phone.map {
-                phone = it.value
+                phone = it.unwrap()
             }
         }
 
